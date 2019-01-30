@@ -11,8 +11,6 @@ export https_proxy=socks5://localhost:8112
 
 fly validate-pipeline --config "${SCRIPT_DIR}/pipeline.yml"
 
-fly -t mcld destroy-pipeline -p ${PIPELINE} -n
-
 fly -t ${TARGET} set-pipeline -n \
   --config "${SCRIPT_DIR}/pipeline.yml" \
   --pipeline "${PIPELINE}"
@@ -24,5 +22,7 @@ for RESOURCE in $RESOURCES; do
 done
 
 fly -t mcld unpause-pipeline -p $PIPELINE
+
+fly -t mcld trigger-job -j $PIPELINE/deploy-ci
 
 unset https_proxy

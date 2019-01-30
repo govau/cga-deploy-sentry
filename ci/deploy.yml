@@ -16,7 +16,7 @@ outputs: []
 params:
   KUBECONFIG:
   TILLER_WORKSPACE: sentry-ci
-  WORKSPACE:
+  NAMESPACE:
 
 run:
   path: deploy-src/ci/deploy.sh

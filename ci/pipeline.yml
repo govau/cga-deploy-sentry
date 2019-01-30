@@ -31,5 +31,5 @@ jobs:
       file: deploy-src/ci/deploy.yml
       params:
         KUBECONFIG: ((kubeconfig))
-        WORKSPACE: sentry-ci
+        NAMESPACE: sentry-ci
         
