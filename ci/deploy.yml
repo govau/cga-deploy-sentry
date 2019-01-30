@@ -15,7 +15,6 @@ outputs: []
 
 params:
   KUBECONFIG:
-  TILLER_NAMESPACE: sentry-ci
   NAMESPACE:
 
 run:

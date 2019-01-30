@@ -9,6 +9,7 @@ set -o pipefail
 
 echo $KUBECONFIG > k
 export KUBECONFIG=k
+export TILLER_NAMESPACE=sentry-ci
 
 ci_user=ci-user
 
@@ -27,4 +28,5 @@ helm dependency update src/stable/sentry/
 # helm does not allow the same deployment name across two different workspaces, so we use the workspace name as the deployment name
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
+  -f deploy-src/values.yml \
   ${NAMESPACE} src/stable/sentry/
