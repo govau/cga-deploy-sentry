@@ -22,7 +22,7 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
 helm init --client-only --service-account "${ci_user}" --wait
 
-helm repo update
+helm dependency update src/stable/sentry/
 
 # helm does not allow the same deployment name across two different workspaces, so we use the workspace name as the deployment name
 helm upgrade --install --wait \
