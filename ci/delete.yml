@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: govau/cga-cf-bosh-cli
+    tag: latest
+
+inputs:
+- name: deploy-src
+
+outputs: []
+
+params:
+  KUBECONFIG:
+  TILLER_WORKSPACE: sentry-ci
+  WORKSPACE:
+
+run:
+  path: deploy-src/ci/deploy.sh
