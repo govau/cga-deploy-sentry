@@ -26,7 +26,6 @@ jobs:
   - do:
     - get: src
     - get: deploy-src
-      trigger: true
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:

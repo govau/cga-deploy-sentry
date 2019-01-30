@@ -27,5 +27,4 @@ helm repo update
 # helm does not allow the same deployment name across two different workspaces, so we use the workspace name as the deployment name
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
-  --name ${NAMESPACE} \
-  src/stable/sentry/
+  ${NAMESPACE} src/stable/sentry/
