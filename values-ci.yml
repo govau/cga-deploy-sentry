@@ -1,0 +1,32 @@
+# TODO while testing dont use PVCs?
+# persistence:
+#   enabled: false
+# postgresql:
+#   persistence:
+#     enabled: false
+# redis:
+#   master:
+#     persistence:
+#       enabled: false
+
+service:
+  type: ClusterIP
+ingress:
+  enabled: true
+  hostname: sentry-ci.kapps.l.cld.gov.au
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    certmanager.k8s.io/cluster-issuer: "letsencrypt-staging"
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+  tls:
+    - secretName: sentry-ci-kapps-l-cld-gov-au-tls
+      hosts:
+      - sentry-ci.kapps.l.cld.gov.au
+# Consider enabling SSO later
+# config:
+#   sentryConfPy: |
+#     from sentry.conf.server import *
+#     # turn SSO on
+#     SENTRY_FEATURES['organizations:sso'] = True
+#     GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+#     GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')

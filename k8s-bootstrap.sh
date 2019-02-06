@@ -13,11 +13,64 @@ NAMESPACE_CI="${APP_NAME}-ci"
 
 ci_user="ci-user"
 
-echo "Checking you are logged in to credhub"
-https_proxy=socks5://localhost:8112 credhub find > /dev/null
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+echo "Ensuring you are logged in to credhub"
+if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
+  https_proxy=socks5://localhost:8112 credhub login --sso
+fi
+
+echo "Ensuring google auth secrets are set"
+GOOGLE_CREDS_FILE="$SCRIPT_DIR/google_client_secret.json"
+if [ ! -e $GOOGLE_CREDS_FILE ]; then
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/google_client_id" > /dev/null 2>&1 ; then
+    echo $GOOGLE_CREDS_FILE not found
+
+    cat <<EOF
+    You must manually create a Google Client ID for sentry sso.
+
+    Go to the DTA SSO project: <https://console.developers.google.com/apis/credentials?project=dta-single-sign-on&organizationId=110492363159>"
+
+    Create an OAuth Client ID credential:
+    - Type: Web application
+    - Name: Sentry ENV_NAME-cld (not important)
+    - Redirect URIs:
+        - https://sentry.kapps.l.cld.gov.au/auth/sso/
+
+    Click the Download JSON link.
+
+    Move the json file to $GOOGLE_CREDS_FILE
+
+    mv ~/Downloads/client_secret_xxxx.json $GOOGLE_CREDS_FILE
+EOF
+    exit 1
+  fi
+else
+  GOOGLE_CLIENT_ID="$(yq -r .web.client_id ${GOOGLE_CREDS_FILE})"
+  GOOGLE_CLIENT_SECRET="$(yq -r .web.client_secret ${GOOGLE_CREDS_FILE})"
+
+  # TODO decide whether to just keep the secrets in credhub or k8s secrets - no need for both
+  kubectl create secret generic -n "${NAMESPACE}" sentry-google-auth \
+  --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} \
+  --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
+  --dry-run -o yaml | kubectl apply -f -
+
+  kubectl create secret generic -n "${NAMESPACE_CI}" sentry-google-auth \
+  --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} \
+  --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
+  --dry-run -o yaml | kubectl apply -f -
+
+  https_proxy=socks5://localhost:8112 \
+  credhub set -n "/concourse/apps/$APP_NAME/google_client_id" -t value -v "${GOOGLE_CLIENT_ID}"
+
+  https_proxy=socks5://localhost:8112 \
+  credhub set -n "/concourse/apps/$APP_NAME/google_client_secret" -t value -v "${GOOGLE_CLIENT_SECRET}"
+fi
 
 # We may as well rotate the service account creds if it already exists
-kubectl --namespace ${NAMESPACE_CI} delete serviceaccount ${ci_user} || true
+if kubectl get serviceaccount ${ci_user} > /dev/null 2>&1 ; then
+  kubectl --namespace ${NAMESPACE_CI} delete serviceaccount ${ci_user} || true
+fi
 
 kubectl apply -f <(cat <<EOF
 apiVersion: v1
@@ -140,15 +193,17 @@ EOF
 
 echo "${kubeconfig}" > secret-kubeconfig
 echo "kubeconfig for ci has been saved into secret-kubeconfig"
+
 https_proxy=socks5://localhost:8112 \
 credhub set -n "/concourse/apps/$APP_NAME/kubeconfig" -t value -v "$(cat secret-kubeconfig)"
+
+echo "Removing secret-kubeconfig"
+rm secret-kubeconfig
 
 echo "Use in concourse:"
 echo "echo \$KUBECONFIG > k"
 echo "export KUBECONFIG=k"
 echo "kubectl get all"
-
-rm secret-kubeconfig
 
 ############
 # Test the creds (remove the above `rm`)

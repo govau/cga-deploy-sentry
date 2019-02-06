@@ -15,7 +15,10 @@ outputs: []
 
 params:
   KUBECONFIG:
+  GOOGLE_CLIENT_ID:
+  GOOGLE_CLIENT_SECRET:
   NAMESPACE:
-
+  TILLER_NAMESPACE: sentry-ci
+  VALUES_FILE:
 run:
   path: deploy-src/ci/deploy.sh
