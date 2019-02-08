@@ -10,10 +10,10 @@ resources:
   source:
     branch: master
     uri: https://github.com/govau/cga-deploy-sentry
-# - name: slack
-#   type: slack-notification
-#   source:
-#     url: ((slack-webhook-url))
+- name: slack
+  type: slack-notification
+  source:
+    url: ((slack-webhook-url))
 resource_types:
 - name: slack-notification
   type: docker-image
@@ -29,29 +29,29 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
-        KUBECONFIG: ((kubeconfig))
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
+        KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry-ci
         VALUES_FILE: values-ci.yml
 - name: delete-ci
   serial: true
   plan:
-    - do:
-      - get: src
-        passed:
-        - deploy-ci
-        trigger: true
-      - get: deploy-src
-        passed:
-        - deploy-ci
-        trigger: true
-      - task: deploy
-        file: deploy-src/ci/delete.yml
-        params:
-          KUBECONFIG: ((kubeconfig))
-          NAMESPACE: sentry-ci
-          VALUES_FILE: values-ci.yml
+  - do:
+    - get: src
+      passed:
+      - deploy-ci
+      trigger: true
+    - get: deploy-src
+      passed:
+      - deploy-ci
+      trigger: true
+    - task: deploy
+      file: deploy-src/ci/delete.yml
+      params:
+        KUBECONFIG: ((kubeconfig))
+        NAMESPACE: sentry-ci
+        VALUES_FILE: values-ci.yml
 - name: deploy-prod
   serial: true
   plan:
@@ -67,9 +67,14 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
-        KUBECONFIG: ((kubeconfig))
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
+        KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry
         VALUES_FILE: values.yml
-
+  on_failure:
+    put: slack
+    params:
+      text: |
+        :x: $BUILD_PIPELINE_NAME $BUILD_JOB_NAME FAILED
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
