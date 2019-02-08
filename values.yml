@@ -11,3 +11,10 @@ ingress:
     - secretName: sentry-cloud-gov-au-tls
       hosts:
       - sentry.cloud.gov.au
+config:
+  configYml: |
+    system.url-prefix: sentry.cloud.gov.au
+  sentryConfPy: |
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
