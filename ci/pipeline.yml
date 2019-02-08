@@ -34,14 +34,36 @@ jobs:
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         NAMESPACE: sentry-ci
         VALUES_FILE: values-ci.yml
+- name: delete-ci
+  serial: true
+  plan:
+    - do:
+      - get: src
+        passed:
+        - deploy-ci
+        trigger: true
+      - get: deploy-src
+        passed:
+        - deploy-ci
+        trigger: true
+      - task: deploy
+        file: deploy-src/ci/delete.yml
+        params:
+          KUBECONFIG: ((kubeconfig))
+          NAMESPACE: sentry-ci
+          VALUES_FILE: values-ci.yml
 - name: deploy-prod
   serial: true
   plan:
   - do:
     - get: src
-      passed: deploy-ci
+      passed:
+      - deploy-ci
+      trigger: true
     - get: deploy-src
-      passed: deploy-ci
+      passed:
+      - deploy-ci
+      trigger: true
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
