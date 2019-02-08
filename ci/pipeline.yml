@@ -21,7 +21,8 @@ resource_types:
     repository: cfcommunity/slack-notification-resource
 jobs:
 - name: deploy-ci
-  serial: true
+  serial_groups:
+  - ci
   plan:
   - do:
     - get: src
@@ -35,7 +36,8 @@ jobs:
         NAMESPACE: sentry-ci
         VALUES_FILE: values-ci.yml
 - name: delete-ci
-  serial: true
+  serial_groups:
+  - ci
   plan:
   - do:
     - get: src
@@ -46,12 +48,11 @@ jobs:
       passed:
       - deploy-ci
       trigger: true
-    - task: deploy
+    - task: delete
       file: deploy-src/ci/delete.yml
       params:
         KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry-ci
-        VALUES_FILE: values-ci.yml
 - name: deploy-prod
   serial: true
   plan:
