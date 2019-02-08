@@ -18,4 +18,4 @@ params:
   WORKSPACE:
 
 run:
-  path: deploy-src/ci/deploy.sh
+  path: deploy-src/ci/delete.sh
