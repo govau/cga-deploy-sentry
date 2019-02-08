@@ -21,7 +21,9 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 helm init --client-only --service-account "${ci_user}" --wait
 
 # https://github.com/helm/charts/tree/master/stable/sentry#uninstalling-the-chart
-helm delete ${NAMESPACE} --purge && \
-kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init job/${NAMESPACE}-user-create && \
-kubectl -n ${NAMESPACE} delete pvc redis-data-${NAMESPACE}-redis-master-0 && \
-kubectl -n ${NAMESPACE} delete pvc ${NAMESPACE}-postgresql
+helm delete ${NAMESPACE} && \
+kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init job/${NAMESPACE}-user-create
+
+# in ci we dont use pvcs, so no need to delete them anymore
+# kubectl -n ${NAMESPACE} delete pvc redis-data-${NAMESPACE}-redis-master-0 && \
+# kubectl -n ${NAMESPACE} delete pvc ${NAMESPACE}-postgresql
