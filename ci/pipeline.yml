@@ -42,6 +42,11 @@ jobs:
         KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry-ci
         VALUES_FILE: values-ci.yml
+    - task: smoke-test
+      file: deploy-src/ci/smoke-test.yml
+      params:
+        KUBECONFIG: ((kubeconfig))
+        NAMESPACE: sentry-ci
 - name: delete-ci
   serial_groups:
   - ci
@@ -87,6 +92,11 @@ jobs:
         KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry
         VALUES_FILE: values.yml
+    - task: smoke-test
+      file: deploy-src/ci/smoke-test.yml
+      params:
+        KUBECONFIG: ((kubeconfig))
+        NAMESPACE: sentry
   on_failure:
     put: slack
     params:

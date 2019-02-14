@@ -1,0 +1,16 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: govau/cga-cf-bosh-cli
+    tag: latest
+inputs:
+- name: deploy-src
+
+params:
+  KUBECONFIG:
+  NAMESPACE:
+
+run:
+  path: deploy-src/ci/smoke-test.sh
