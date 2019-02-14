@@ -1,0 +1,7 @@
+export EMAIL_FROM_ADDRESS=no-reply@cloud.gov.au
+export EMAIL_HOST=smtp.example.com
+export EMAIL_PORT=587
+export EMAIL_USER=
+export EMAIL_PASSWORD=
+export EMAIL_USE_TLS=true
+export DEFAULT_ADMIN_USER=admin@sentry.local

@@ -30,6 +30,13 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        DEFAULT_ADMIN_USER: ((default_admin_user))
+        EMAIL_FROM_ADDRESS: ((email_from_address))
+        EMAIL_HOST: ((email_from_address))
+        EMAIL_PORT: ((email_port))
+        EMAIL_USER: ((email_user))
+        EMAIL_PASSWORD: ((email_password))
+        EMAIL_USE_TLS: "YES"
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))
@@ -68,6 +75,13 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        DEFAULT_ADMIN_USER: ((default_admin_user))
+        EMAIL_FROM_ADDRESS: ((email_from_address))
+        EMAIL_HOST: ((email_from_address))
+        EMAIL_PORT: ((email_port))
+        EMAIL_USER: ((email_user))
+        EMAIL_PASSWORD: ((email_password))
+        EMAIL_USE_TLS: "YES"
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))

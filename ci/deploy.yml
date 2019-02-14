@@ -14,11 +14,19 @@ inputs:
 outputs: []
 
 params:
+  DEFAULT_ADMIN_USER:
+  EMAIL_FROM_ADDRESS:
+  EMAIL_HOST:
+  EMAIL_PORT:
+  EMAIL_USER:
+  EMAIL_PASSWORD:
+  EMAIL_USE_TLS:
   KUBECONFIG:
   GOOGLE_CLIENT_ID:
   GOOGLE_CLIENT_SECRET:
   NAMESPACE:
   TILLER_NAMESPACE: sentry-ci
   VALUES_FILE:
+
 run:
   path: deploy-src/ci/deploy.sh

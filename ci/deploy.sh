@@ -3,6 +3,13 @@
 set -eu
 set -o pipefail
 
+: "${DEFAULT_ADMIN_USER:?Need to set DEFAULT_ADMIN_USER}"
+: "${EMAIL_FROM_ADDRESS:?Need to set EMAIL_FROM_ADDRESS}"
+: "${EMAIL_HOST:?Need to set EMAIL_HOST}"
+: "${EMAIL_PORT:?Need to set EMAIL_PORT}"
+: "${EMAIL_USER:?Need to set EMAIL_USER}"
+: "${EMAIL_PASSWORD:?Need to set EMAIL_PASSWORD}"
+: "${EMAIL_USE_TLS:?Need to set EMAIL_USE_TLS}"
 : "${KUBECONFIG:?Need to set KUBECONFIG}"
 : "${NAMESPACE:?Need to set NAMESPACE}"
 : "${TILLER_NAMESPACE:?Need to set TILLER_NAMESPACE}"
@@ -12,7 +19,6 @@ set -o pipefail
 
 echo $KUBECONFIG > k
 export KUBECONFIG=k
-export TILLER_NAMESPACE=sentry-ci
 
 ci_user=ci-user
 
@@ -24,6 +30,15 @@ web:
       value: "${GOOGLE_CLIENT_ID}"
     - name: GOOGLE_CLIENT_SECRET
       value: "${GOOGLE_CLIENT_SECRET}"
+email:
+  from_address: ${EMAIL_FROM_ADDRESS}
+  host: ${EMAIL_HOST}
+  port: ${EMAIL_PORT}
+  user: ${EMAIL_USER}
+  password: ${EMAIL_PASSWORD}
+  use_tls: ${EMAIL_USE_TLS}
+user:
+  email: ${DEFAULT_ADMIN_USER}
 EOF
 
 set -x

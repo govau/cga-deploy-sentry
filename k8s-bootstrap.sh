@@ -15,6 +15,12 @@ ci_user="ci-user"
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+set_credhub_value() {
+  KEY="$1"
+  VALUE="$2"
+  https_proxy=socks5://localhost:8112 \
+  credhub set -n "/concourse/apps/$APP_NAME/$KEY" -t value -v "${VALUE}"
+}
 echo "Ensuring you are logged in to credhub"
 if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
   https_proxy=socks5://localhost:8112 credhub login --sso
@@ -60,11 +66,23 @@ else
   --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
   --dry-run -o yaml | kubectl apply -f -
 
-  https_proxy=socks5://localhost:8112 \
-  credhub set -n "/concourse/apps/$APP_NAME/google_client_id" -t value -v "${GOOGLE_CLIENT_ID}"
+  set_credhub_value google_client_id "${GOOGLE_CLIENT_ID}"
+  set_credhub_value google_client_secret "${GOOGLE_CLIENT_SECRET}"
+fi
 
-  https_proxy=socks5://localhost:8112 \
-  credhub set -n "/concourse/apps/$APP_NAME/google_client_secret" -t value -v "${GOOGLE_CLIENT_SECRET}"
+echo "Ensuring email secrets are set if they are in our env"
+if [ -n "$EMAIL_FROM_ADDRESS" ]; then
+  set_credhub_value default_admin_user "${DEFAULT_ADMIN_USER}"
+  set_credhub_value email_from_address "${EMAIL_FROM_ADDRESS}"
+  set_credhub_value email_host "${EMAIL_HOST}"
+  set_credhub_value email_port "${EMAIL_PORT}"
+  set_credhub_value email_user "${EMAIL_USER}"
+  set_credhub_value email_password "${EMAIL_PASSWORD}"
+else
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/email_from_address" > /dev/null 2>&1 ; then
+    echo "Email secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
+    exit 1
+  fi
 fi
 
 # We may as well rotate the service account creds if it already exists
@@ -194,8 +212,7 @@ EOF
 echo "${kubeconfig}" > secret-kubeconfig
 echo "kubeconfig for ci has been saved into secret-kubeconfig"
 
-https_proxy=socks5://localhost:8112 \
-credhub set -n "/concourse/apps/$APP_NAME/kubeconfig" -t value -v "$(cat secret-kubeconfig)"
+set_credhub_value kubeconfig "$(cat secret-kubeconfig)"
 
 echo "Removing secret-kubeconfig"
 rm secret-kubeconfig
