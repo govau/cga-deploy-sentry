@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This script is run outside of CI with elevated priviledges mainly to
+# configure CI prequisities such as ci service account and secrets
+
 set -eu
 set -o pipefail
 
@@ -86,7 +89,7 @@ else
 fi
 
 # We may as well rotate the service account creds if it already exists
-if kubectl get serviceaccount ${ci_user} > /dev/null 2>&1 ; then
+if kubectl --namespace ${NAMESPACE_CI} get serviceaccount ${ci_user} > /dev/null 2>&1 ; then
   kubectl --namespace ${NAMESPACE_CI} delete serviceaccount ${ci_user} || true
 fi
 
