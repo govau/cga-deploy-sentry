@@ -60,3 +60,11 @@ helm upgrade --install --wait \
   -f deploy-src/${VALUES_FILE} \
   -f ${SECRET_VALUES_FILE} \
   ${NAMESPACE} charts/stable/sentry/
+
+echo "Waiting for rollout to finish"
+DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"
+for DEPLOYMENT in $DEPLOYMENTS; do
+    kubectl rollout status --namespace=${NAMESPACE} --timeout=1m \
+        --watch deployment/${DEPLOYMENT}
+done
+
