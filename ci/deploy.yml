@@ -8,7 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
-- name: src
+- name: charts
 - name: deploy-src
 
 outputs: []

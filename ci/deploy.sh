@@ -51,7 +51,7 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
 helm init --client-only --service-account "${ci_user}" --wait
 
-helm dependency update src/stable/sentry/
+helm dependency update charts/stable/sentry/
 
 # helm does not allow the same deployment name across two different workspaces,
 # so we use the workspace name as the deployment name.
@@ -59,4 +59,4 @@ helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
   -f deploy-src/${VALUES_FILE} \
   -f ${SECRET_VALUES_FILE} \
-  ${NAMESPACE} src/stable/sentry/
+  ${NAMESPACE} charts/stable/sentry/
