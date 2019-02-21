@@ -160,6 +160,39 @@ roleRef:
 EOF
 )
 
+# Grant perms to use aws-sb
+kubectl apply -f <(cat <<EOF
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "serviceinstances"
+  namespace: "${NAMESPACE_CI}"
+rules:
+- apiGroups: ["serviceinstances"]
+  resources: ["*"]
+  verbs: ["list"]
+- apiGroups: ["servicecatalog.k8s.io"]
+  resources: ["clusterservicebrokers","serviceinstances","servicebindings"]
+  verbs:     ["get","list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: serviceinstances-binding
+  namespace: "${NAMESPACE_CI}"
+subjects:
+- kind: ServiceAccount
+  name: "${ci_user}"
+  namespace: "${NAMESPACE_CI}"
+roleRef:
+  kind: Role
+  name: "serviceinstances"
+  apiGroup: rbac.authorization.k8s.io
+EOF
+)
+
+# TODO add deployment namespace when above fixed
+
 secret="$(kubectl get "serviceaccount/${ci_user}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"
 token="$(kubectl get secret "${secret}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.data.token}' | base64 --decode)"
 

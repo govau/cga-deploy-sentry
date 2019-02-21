@@ -22,6 +22,12 @@ export KUBECONFIG=k
 
 ci_user=ci-user
 
+DB_NAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
+ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
+MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
+MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
+PORT="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
+
 SECRET_VALUES_FILE=secret-values.yml
 cat << EOF > ${SECRET_VALUES_FILE}
 web:
@@ -39,11 +45,17 @@ email:
   use_tls: ${EMAIL_USE_TLS}
 user:
   email: ${DEFAULT_ADMIN_USER}
+postgresql:
+  enabled: false
+  postgresDatabase: "${DB_NAME}"
+  postgresHost: "${ENDPOINT_ADDRESS}"
+  postgresPassword: "${MASTER_PASSWORD}"
+  postgresUser: "${MASTER_USERNAME}"
+  postgresPort: "${PORT}"
 EOF
 
-set -x
 
-kubectl get pods -n ${NAMESPACE} # just a test
+set -x
 
 echo "Starting tiller in the background"
 export HELM_HOST=:44134
@@ -64,7 +76,7 @@ helm upgrade --install --wait \
 echo "Waiting for rollout to finish"
 DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"
 for DEPLOYMENT in $DEPLOYMENTS; do
-    kubectl rollout status --namespace=${NAMESPACE} --timeout=1m \
+    kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
         --watch deployment/${DEPLOYMENT}
 done
 

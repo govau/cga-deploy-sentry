@@ -22,6 +22,10 @@ ingress:
     - secretName: sentry-ci-kapps-l-cld-gov-au-tls
       hosts:
       - sentry-ci.kapps.l.cld.gov.au
+user:
+  # todo remove after we stop using rds in ci
+  create: false # only needed the first time
+
 # Consider enabling SSO later
 # config:
 #   sentryConfPy: |
