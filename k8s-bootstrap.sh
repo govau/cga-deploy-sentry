@@ -160,38 +160,47 @@ roleRef:
 EOF
 )
 
-# Grant perms to use aws-sb
+# Create rds database
+# To start while testing we use rds in ci, but later can probably
+# just use the embedded postgres
 kubectl apply -f <(cat <<EOF
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
 metadata:
-  name: "serviceinstances"
-  namespace: "${NAMESPACE_CI}"
-rules:
-- apiGroups: ["serviceinstances"]
-  resources: ["*"]
-  verbs: ["list"]
-- apiGroups: ["servicecatalog.k8s.io"]
-  resources: ["clusterservicebrokers","serviceinstances","servicebindings"]
-  verbs:     ["get","list"]
+  name: "${NAMESPACE}-db"
+  namespace: "${NAMESPACE}"
+spec:
+  clusterServiceClassExternalName: rdspostgresql
+  clusterServicePlanExternalName: production
 ---
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
 metadata:
-  name: serviceinstances-binding
+  name: "${NAMESPACE_CI}-db"
   namespace: "${NAMESPACE_CI}"
-subjects:
-- kind: ServiceAccount
-  name: "${ci_user}"
+spec:
+  clusterServiceClassExternalName: rdspostgresql
+  clusterServicePlanExternalName: dev
+---
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: ${NAMESPACE}-db-binding
+  namespace: "${NAMESPACE}"
+spec:
+  instanceRef:
+    name: "${NAMESPACE}-db"
+---
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: ${NAMESPACE_CI}-db-binding
   namespace: "${NAMESPACE_CI}"
-roleRef:
-  kind: Role
-  name: "serviceinstances"
-  apiGroup: rbac.authorization.k8s.io
+spec:
+  instanceRef:
+    name: "${NAMESPACE_CI}-db"
 EOF
 )
-
-# TODO add deployment namespace when above fixed
 
 secret="$(kubectl get "serviceaccount/${ci_user}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"
 token="$(kubectl get secret "${secret}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.data.token}' | base64 --decode)"
@@ -257,31 +266,3 @@ echo "Use in concourse:"
 echo "echo \$KUBECONFIG > k"
 echo "export KUBECONFIG=k"
 echo "kubectl get all"
-
-############
-# Test the creds (remove the above `rm`)
-
-# export TILLER_NAMESPACE="${NAMESPACE_CI}"
-# set -x
-
-# echo "Starting tiller in the background. It is then killed at the end."
-# pkill tiller || true
-# export HELM_HOST=:44134
-# # KUBECONFIG=secret-kubeconfig tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
-
-# KUBECONFIG=secret-kubeconfig tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
-
-# helm init --client-only --service-account "${ci_user}" --wait
-
-# helm repo update
-
-# helm upgrade --install --wait \
-#   --namespace ${NAMESPACE_CI} \
-#   mysql-ci stable/mysql
-
-# helm upgrade --install --wait \
-#   --namespace ${NAMESPACE} \
-#   mysql stable/mysql
-
-# echo "Killing tiller"
-# pkill tiller
