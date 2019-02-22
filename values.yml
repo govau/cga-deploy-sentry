@@ -11,6 +11,8 @@ ingress:
     - secretName: sentry-cloud-gov-au-tls
       hosts:
       - sentry.cloud.gov.au
+user:
+  create: false # user creation only needed the first time
 config:
   configYml: |
     system.url-prefix: sentry.cloud.gov.au
