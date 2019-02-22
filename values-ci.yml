@@ -1,13 +1,13 @@
 # While testing dont use PVCs
 persistence:
   enabled: false
-postgresql:
-  persistence:
-    enabled: false
-redis:
-  master:
-    persistence:
-      enabled: false
+# postgresql:
+#   persistence:
+#     enabled: false
+# redis:
+#   master:
+#     persistence:
+#       enabled: false
 
 service:
   type: ClusterIP

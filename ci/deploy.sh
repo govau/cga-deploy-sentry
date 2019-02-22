@@ -22,11 +22,38 @@ export KUBECONFIG=k
 
 ci_user=ci-user
 
-DB_NAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
-ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
-MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
-MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
-PORT="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
+# Starting tiller in the background"
+export HELM_HOST=:44134
+tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
+
+helm init --client-only --service-account "${ci_user}" --wait
+
+helm dependency update charts/stable/redis/
+
+helm upgrade --install --wait \
+  --namespace ${NAMESPACE} \
+  -f deploy-src/redis-values.yml \
+  redis-${NAMESPACE} charts/stable/redis
+
+# Wait for redis to be ready
+kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
+  --watch deployment/redis-${NAMESPACE}-slave
+
+POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
+POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
+POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
+POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
+POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
+
+# REDIS_SECRET="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-redis-binding -o json)"
+# REDIS_HOSTNAME="$(echo ${REDIS_SECRET} | jq -r '.data.HOSTNAME' | base64 -d)"
+# REDIS_PASSWORD="$(echo ${REDIS_SECRET} | jq -r '.data.PASSWORD' | base64 -d)"
+# REDIS_PORT="$(echo ${REDIS_SECRET} | jq -r '.data.PORT' | base64 -d)"
+# REDIS_SCHEME="$(echo ${REDIS_SECRET} | jq -r '.data.SCHEME' | base64 -d)"
+# REDIS_URL="$(echo ${REDIS_SECRET} | jq -r '.data.URL' | base64 -d)"
+REDIS_HOST="redis-${NAMESPACE}-master"
+REDIS_PASSWORD=$(kubectl get secret --namespace ${NAMESPACE} redis-${NAMESPACE} -o jsonpath="{.data.redis-password}" | base64 --decode)
+REDIS_PORT="6379"
 
 SECRET_VALUES_FILE=secret-values.yml
 cat << EOF > ${SECRET_VALUES_FILE}
@@ -47,21 +74,17 @@ user:
   email: ${DEFAULT_ADMIN_USER}
 postgresql:
   enabled: false
-  postgresDatabase: "${DB_NAME}"
-  postgresHost: "${ENDPOINT_ADDRESS}"
-  postgresPassword: "${MASTER_PASSWORD}"
-  postgresUser: "${MASTER_USERNAME}"
-  postgresPort: "${PORT}"
+  postgresDatabase: "${POSTGRES_DB_NAME}"
+  postgresHost: "${POSTGRES_ENDPOINT_ADDRESS}"
+  postgresPassword: "${POSTGRES_MASTER_PASSWORD}"
+  postgresUser: "${POSTGRES_MASTER_USERNAME}"
+  postgresPort: "${POSTGRES_PORT}"
+redis:
+  enabled: false
+  host: "${REDIS_HOST}"
+  password: "${REDIS_PASSWORD}"
+  port: "${REDIS_PORT}"
 EOF
-
-
-set -x
-
-# Starting tiller in the background"
-export HELM_HOST=:44134
-tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
-
-helm init --client-only --service-account "${ci_user}" --wait
 
 helm dependency update charts/stable/sentry/
 
