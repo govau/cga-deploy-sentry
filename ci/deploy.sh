@@ -57,7 +57,7 @@ EOF
 
 set -x
 
-echo "Starting tiller in the background"
+# Starting tiller in the background"
 export HELM_HOST=:44134
 tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
@@ -73,7 +73,7 @@ helm upgrade --install --wait \
   -f ${SECRET_VALUES_FILE} \
   ${NAMESPACE} charts/stable/sentry/
 
-echo "Waiting for rollout to finish"
+# Waiting for rollout to finish
 DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"
 for DEPLOYMENT in $DEPLOYMENTS; do
     kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
