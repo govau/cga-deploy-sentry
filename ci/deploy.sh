@@ -28,8 +28,6 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
 helm init --client-only --service-account "${ci_user}" --wait
 
-helm dependency update charts/stable/redis/
-
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
   -f deploy-src/redis-values.yml \
