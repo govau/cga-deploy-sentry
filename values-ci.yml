@@ -26,14 +26,6 @@ user:
   # todo remove after we stop using rds in ci
   create: false # only needed the first time
 
-# Consider enabling SSO later
-# config:
-#   sentryConfPy: |
-#     from sentry.conf.server import *
-#     # turn SSO on
-#     SENTRY_FEATURES['organizations:sso'] = True
-#     GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
-#     GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 config:
   configYml: |
     system.url-prefix: https://sentry-ci.kapps.l.cld.gov.au
@@ -41,4 +33,10 @@ config:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+    # from sentry.conf.server import *
+    # turn SSO on
+    SENTRY_FEATURES['organizations:sso'] = True
+    GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 
