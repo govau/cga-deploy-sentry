@@ -23,6 +23,6 @@ done
 
 fly -t mcld unpause-pipeline -p $PIPELINE
 
-fly -t mcld trigger-job -j $PIPELINE/build-image
+fly -t mcld trigger-job -j $PIPELINE/deploy-ci
 
 unset https_proxy

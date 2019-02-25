@@ -22,11 +22,6 @@ set -o pipefail
 echo $KUBECONFIG > k
 export KUBECONFIG=k
 
-# Tag is not always populated correctly by the docker-image resource (ie it defaults to latest)
-# so use the actual source for tag
-TAG=$(cat src/.git/ref)
-REPO=$(cat img/repository)
-
 ci_user=ci-user
 
 # Starting tiller in the background"
@@ -62,9 +57,6 @@ REDIS_PORT="6379"
 
 SECRET_VALUES_FILE=secret-values.yml
 cat << EOF > ${SECRET_VALUES_FILE}
-image:
-  repository: "${REPO}"
-  tag: "${TAG}"
 web:
   env:
     - name: GITHUB_APP_ID
