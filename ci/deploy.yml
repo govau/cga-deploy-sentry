@@ -14,7 +14,7 @@ inputs:
 outputs: []
 
 params:
-  DEFAULT_ADMIN_USER:
+  DEPLOY_ENV:
   EMAIL_FROM_ADDRESS:
   EMAIL_HOST:
   EMAIL_PORT:
@@ -28,7 +28,6 @@ params:
   GOOGLE_CLIENT_SECRET:
   NAMESPACE:
   TILLER_NAMESPACE: sentry-ci
-  VALUES_FILE:
 
 run:
   path: deploy-src/ci/deploy.sh

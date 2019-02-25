@@ -1,6 +1,4 @@
-image:
-  repository: docker.io/govau/cga-sentry
-  tag: latest
+
 service:
   type: ClusterIP
 ingress:
@@ -16,8 +14,6 @@ ingress:
       - sentry.cloud.gov.au
 user:
   create: false # user creation only needed the first time
-redis:
-  existingSecret: redis-sentry # secret is created the first time
 config:
   configYml: |
     system.url-prefix: sentry.cloud.gov.au

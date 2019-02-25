@@ -18,17 +18,6 @@ ci_user="ci-user"
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-set_credhub_value() {
-  KEY="$1"
-  VALUE="$2"
-  https_proxy=socks5://localhost:8112 \
-  credhub set -n "/concourse/apps/$APP_NAME/$KEY" -t value -v "${VALUE}"
-}
-echo "Ensuring you are logged in to credhub"
-if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
-  https_proxy=socks5://localhost:8112 credhub login --sso
-fi
-
 # We may as well rotate the service account creds if it already exists
 if kubectl --namespace ${NAMESPACE_CI} get serviceaccount ${ci_user} > /dev/null 2>&1 ; then
   kubectl --namespace ${NAMESPACE_CI} delete serviceaccount ${ci_user} || true
@@ -127,7 +116,6 @@ EOF
 
 # todo wait for instances to be created, then we can bind to them
 
-# Create redis
 kubectl apply -f <(cat <<EOF
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceBinding
@@ -149,74 +137,17 @@ spec:
 EOF
 )
 
-echo "Ensuring google auth secrets are set"
-GOOGLE_CREDS_FILE="$SCRIPT_DIR/google_client_secret.json"
-if [ ! -e $GOOGLE_CREDS_FILE ]; then
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/google_client_id" > /dev/null 2>&1 ; then
-    echo $GOOGLE_CREDS_FILE not found
-
-    cat <<EOF
-    You must manually create a Google Client ID for sentry sso.
-
-    Go to the DTA SSO project: <https://console.developers.google.com/apis/credentials?project=dta-single-sign-on&organizationId=110492363159>"
-
-    Create an OAuth Client ID credential:
-    - Type: Web application
-    - Name: Sentry ENV_NAME-cld (not important)
-    - Redirect URIs:
-        - https://sentry.kapps.l.cld.gov.au/auth/sso/
-
-    Click the Download JSON link.
-
-    Move the json file to $GOOGLE_CREDS_FILE
-
-    mv ~/Downloads/client_secret_xxxx.json $GOOGLE_CREDS_FILE
-EOF
-    exit 1
-  fi
-else
-  GOOGLE_CLIENT_ID="$(yq -r .web.client_id ${GOOGLE_CREDS_FILE})"
-  GOOGLE_CLIENT_SECRET="$(yq -r .web.client_secret ${GOOGLE_CREDS_FILE})"
-
-  # TODO decide whether to just keep the secrets in credhub or k8s secrets - no need for both
-  kubectl create secret generic -n "${NAMESPACE}" sentry-google-auth \
-  --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} \
-  --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
-  --dry-run -o yaml | kubectl apply -f -
-
-  kubectl create secret generic -n "${NAMESPACE_CI}" sentry-google-auth \
-  --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} \
-  --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
-  --dry-run -o yaml | kubectl apply -f -
-
-  set_credhub_value google_client_id "${GOOGLE_CLIENT_ID}"
-  set_credhub_value google_client_secret "${GOOGLE_CLIENT_SECRET}"
+# Create a random password for redis
+REDIS_SECRET_NAME=redis
+if ! kubectl -n ${NAMESPACE} get secret ${REDIS_SECRET_NAME} > /dev/null 2>&1 ; then
+  REDIS_PASSWORD="$(openssl rand -base64 12)"
+  kubectl -n "${NAMESPACE}" create secret generic ${REDIS_SECRET_NAME} \
+    --from-literal "redis-password=${REDIS_PASSWORD}"
 fi
-
-echo "Ensuring github auth secrets are set if they are in our env"
-if [ -n "$GITHUB_APP_ID" ]; then
-  set_credhub_value github_app_id "${GITHUB_APP_ID}"
-  set_credhub_value github_api_secret "${GITHUB_API_SECRET}"
-else
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/github_app_id" > /dev/null 2>&1 ; then
-    echo "Github auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
-    exit 1
-  fi
-fi
-
-echo "Ensuring email secrets are set if they are in our env"
-if [ -n "$EMAIL_FROM_ADDRESS" ]; then
-  set_credhub_value default_admin_user "${DEFAULT_ADMIN_USER}"
-  set_credhub_value email_from_address "${EMAIL_FROM_ADDRESS}"
-  set_credhub_value email_host "${EMAIL_HOST}"
-  set_credhub_value email_port "${EMAIL_PORT}"
-  set_credhub_value email_user "${EMAIL_USER}"
-  set_credhub_value email_password "${EMAIL_PASSWORD}"
-else
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/email_from_address" > /dev/null 2>&1 ; then
-    echo "Email secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
-    exit 1
-  fi
+if ! kubectl -n ${NAMESPACE_CI} get secret ${REDIS_SECRET_NAME} > /dev/null 2>&1 ; then
+  REDIS_PASSWORD="$(openssl rand -base64 12)"
+  kubectl -n "${NAMESPACE_CI}" create secret generic ${REDIS_SECRET_NAME} \
+    --from-literal "redis-password=${REDIS_PASSWORD}"
 fi
 
 secret="$(kubectl get "serviceaccount/${ci_user}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"
@@ -271,7 +202,13 @@ kubeconfig="$(cat <<EOF
 EOF
 )"
 
-set_credhub_value kubeconfig "${kubeconfig}"
+echo "Ensuring you are logged in to credhub"
+if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
+  https_proxy=socks5://localhost:8112 credhub login --sso
+fi
+
+https_proxy=socks5://localhost:8112 \
+credhub set -n "/concourse/apps/sentry/kubeconfig" -t value -v "${kubeconfig}"
 
 echo "Use in concourse:"
 echo "echo \$KUBECONFIG > k"
