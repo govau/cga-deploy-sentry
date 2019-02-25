@@ -122,25 +122,6 @@ metadata:
 spec:
   clusterServiceClassExternalName: rdspostgresql
   clusterServicePlanExternalName: dev
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceInstance
-metadata:
-  name: "${NAMESPACE}-redis"
-  namespace: "${NAMESPACE}"
-spec:
-  clusterServiceClassExternalName: redis
-  clusterServicePlanExternalName: standard
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceInstance
-metadata:
-  name: "${NAMESPACE_CI}-redis"
-  namespace: "${NAMESPACE_CI}"
-spec:
-  clusterServiceClassExternalName: redis
-  clusterServicePlanExternalName: standard
-
 EOF
 )
 
@@ -165,24 +146,6 @@ metadata:
 spec:
   instanceRef:
     name: "${NAMESPACE_CI}-db"
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceBinding
-metadata:
-  name: ${NAMESPACE}-redis-binding
-  namespace: "${NAMESPACE}"
-spec:
-  instanceRef:
-    name: "${NAMESPACE}-redis"
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceBinding
-metadata:
-  name: ${NAMESPACE_CI}-redis-binding
-  namespace: "${NAMESPACE_CI}"
-spec:
-  instanceRef:
-    name: "${NAMESPACE_CI}-redis"
 EOF
 )
 
@@ -228,6 +191,17 @@ else
 
   set_credhub_value google_client_id "${GOOGLE_CLIENT_ID}"
   set_credhub_value google_client_secret "${GOOGLE_CLIENT_SECRET}"
+fi
+
+echo "Ensuring github auth secrets are set if they are in our env"
+if [ -n "$GITHUB_APP_ID" ]; then
+  set_credhub_value github_app_id "${GITHUB_APP_ID}"
+  set_credhub_value github_api_secret "${GITHUB_API_SECRET}"
+else
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${APP_NAME}/github_app_id" > /dev/null 2>&1 ; then
+    echo "Github auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
+    exit 1
+  fi
 fi
 
 echo "Ensuring email secrets are set if they are in our env"

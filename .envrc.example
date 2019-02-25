@@ -5,3 +5,5 @@ export EMAIL_USER=
 export EMAIL_PASSWORD=
 export EMAIL_USE_TLS=true
 export DEFAULT_ADMIN_USER=admin@sentry.local
+export GITHUB_APP_ID=
+export GITHUB_API_SECRET=

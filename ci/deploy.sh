@@ -15,6 +15,8 @@ set -o pipefail
 : "${TILLER_NAMESPACE:?Need to set TILLER_NAMESPACE}"
 : "${GOOGLE_CLIENT_ID:?Need to set GOOGLE_CLIENT_ID}"
 : "${GOOGLE_CLIENT_SECRET:?Need to set GOOGLE_CLIENT_SECRET}"
+: "${GITHUB_APP_ID:?Need to set GITHUB_APP_ID}"
+: "${GITHUB_API_SECRET:?Need to set GITHUB_API_SECRET}"
 : "${VALUES_FILE:?Need to set VALUES_FILE}"
 
 echo $KUBECONFIG > k
@@ -57,6 +59,10 @@ SECRET_VALUES_FILE=secret-values.yml
 cat << EOF > ${SECRET_VALUES_FILE}
 web:
   env:
+    - name: GITHUB_APP_ID
+      value: "${GITHUB_APP_ID}"
+    - name: GITHUB_API_SECRET
+      value: "${GITHUB_API_SECRET}"
     - name: GOOGLE_CLIENT_ID
       value: "${GOOGLE_CLIENT_ID}"
     - name: GOOGLE_CLIENT_SECRET
