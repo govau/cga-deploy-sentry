@@ -67,8 +67,6 @@ web:
       value: "${GOOGLE_CLIENT_ID}"
     - name: GOOGLE_CLIENT_SECRET
       value: "${GOOGLE_CLIENT_SECRET}"
-    - name: SENTRY_SINGLE_ORGANIZATION
-      value: false
 email:
   from_address: ${EMAIL_FROM_ADDRESS}
   host: ${EMAIL_HOST}
