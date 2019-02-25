@@ -34,9 +34,3 @@ config:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    # from sentry.conf.server import *
-    # turn SSO on
-    SENTRY_FEATURES['organizations:sso'] = True
-    GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
-    GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
-
