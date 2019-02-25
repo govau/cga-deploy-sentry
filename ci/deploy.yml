@@ -10,6 +10,7 @@ image_resource:
 inputs:
 - name: charts
 - name: deploy-src
+- name: img
 
 outputs: []
 

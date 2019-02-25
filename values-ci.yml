@@ -8,7 +8,9 @@ persistence:
 #   master:
 #     persistence:
 #       enabled: false
-
+image:
+  repository: docker.io/govau/cga-sentry
+  tag: latest
 service:
   type: ClusterIP
 ingress:
@@ -33,4 +35,3 @@ config:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
