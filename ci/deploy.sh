@@ -32,7 +32,7 @@ helm init --client-only --service-account "${ci_user}" --wait
 
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
-  -f deploy-src/redis-values.yml \
+  -f deploy-src/values/redis.yml \
   redis-${NAMESPACE} charts/stable/redis
 
 # Wait for redis to be ready
@@ -98,7 +98,8 @@ helm dependency update charts/stable/sentry/
 # so we use the workspace name as the deployment name.
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
-  -f deploy-src/${VALUES_FILE} \
+  -f deploy-src/values/sentry-common.yml \
+  -f deploy-src/values/${VALUES_FILE} \
   -f ${SECRET_VALUES_FILE} \
   ${NAMESPACE} charts/stable/sentry/
 

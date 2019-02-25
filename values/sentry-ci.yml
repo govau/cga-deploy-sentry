@@ -8,9 +8,6 @@ persistence:
 #   master:
 #     persistence:
 #       enabled: false
-image:
-  repository: docker.io/govau/cga-sentry
-  tag: latest
 service:
   type: ClusterIP
 ingress:
@@ -27,6 +24,8 @@ ingress:
 user:
   # todo remove after we stop using rds in ci
   create: false # only needed the first time
+redis:
+  existingSecret: redis-sentry-ci # random secret is created the first time
 
 config:
   configYml: |

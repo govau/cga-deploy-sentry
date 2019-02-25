@@ -35,7 +35,7 @@ usePassword: true
 ##
 password:
 ## Use existing secret (ignores previous password)
-# existingSecret:
+existingSecret: redis-sentry # Created in k8s-bootstrap.sh
 
 ## Mount secrets as files instead of environment variables
 usePasswordFile: false

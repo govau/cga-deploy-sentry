@@ -43,7 +43,7 @@ jobs:
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry-ci
-        VALUES_FILE: values-ci.yml
+        VALUES_FILE: sentry-ci.yml
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml
       params:
@@ -95,7 +95,7 @@ jobs:
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))
         NAMESPACE: sentry
-        VALUES_FILE: values.yml
+        VALUES_FILE: sentry.yml
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml
       params:
