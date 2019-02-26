@@ -53,8 +53,8 @@ web:
       value: "${GOOGLE_CLIENT_SECRET}"
     - name: GITHUB_REQUIRE_VERIFIED_EMAIL
       value: "True"
-    # - name: SENTRY_SINGLE_ORGANIZATION
-    #   value: "False"
+    - name: SENTRY_SINGLE_ORGANIZATION
+      value: "False"
 email:
   from_address: ${EMAIL_FROM_ADDRESS}
   host: ${EMAIL_HOST}
