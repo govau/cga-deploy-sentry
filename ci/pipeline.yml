@@ -5,6 +5,9 @@ resources:
   source:
     branch: master
     uri: https://github.com/helm/charts
+    paths:
+    - stable/redis/**
+    - stable/sentry/**
 - name: deploy-src
   type: git
   source:
