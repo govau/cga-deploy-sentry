@@ -25,6 +25,5 @@ helm delete ${NAMESPACE} --purge || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-user-create || true
 
-kubectl -n ${NAMESPACE} delete pvc redis-data-${NAMESPACE}-redis-master-0
-
+# kubectl -n ${NAMESPACE} delete pvc redis-data-${NAMESPACE}-redis-master-0
 # kubectl -n ${NAMESPACE} delete pvc ${NAMESPACE}-postgresql
