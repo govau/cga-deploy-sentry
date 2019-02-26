@@ -8,48 +8,39 @@ set -o pipefail
 
 APP_NAME=sentry
 
-# We use two namespaces - one for CI testing, and the other for the actual deployment
+# We use two namespaces - one for CI testing, and the other for prod deployment
 # The ci-user will be created in the CI namespace, but will also have access
-# to the deployment namespace
-NAMESPACE="${APP_NAME}"
+# to the other namespace
+NAMESPACE_PROD="${APP_NAME}-prod"
 NAMESPACE_CI="${APP_NAME}-ci"
-
-ci_user="ci-user"
+NAMESPACES="${NAMESPACE_CI} ${NAMESPACE_PROD}"
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-# We may as well rotate the service account creds if it already exists
-if kubectl --namespace ${NAMESPACE_CI} get serviceaccount ${ci_user} > /dev/null 2>&1 ; then
-  kubectl --namespace ${NAMESPACE_CI} delete serviceaccount ${ci_user} || true
-fi
-
-kubectl apply -f <(cat <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: "${NAMESPACE_CI}"
----
+# Create namespaces
+for NAMESPACE in ${NAMESPACES}; do
+  kubectl apply -f <(cat <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
   name: "${NAMESPACE}"
----
+EOF
+)
+done
+
+# Create service account for CI to use
+kubectl apply -f <(cat <<EOF
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "${ci_user}"
+  name: "ci-user"
   namespace: "${NAMESPACE_CI}"
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: "tiller-manager"
-  namespace: "${NAMESPACE_CI}"
-rules:
-- apiGroups: ["", "batch", "extensions", "apps"]
-  resources: ["*"]
-  verbs: ["*"]
----
+EOF
+)
+
+for NAMESPACE in ${NAMESPACES}; do
+  # Grant service account access to all namespaces
+kubectl apply -f <(cat <<EOF
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -64,24 +55,10 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tiller-binding
-  namespace: "${NAMESPACE_CI}"
-subjects:
-- kind: ServiceAccount
-  name: "${ci_user}"
-  namespace: "${NAMESPACE_CI}"
-roleRef:
-  kind: Role
-  name: "tiller-manager"
-  apiGroup: rbac.authorization.k8s.io
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: tiller-binding
   namespace: "${NAMESPACE}"
 subjects:
 - kind: ServiceAccount
-  name: "${ci_user}"
+  name: "ci-user"
   namespace: "${NAMESPACE_CI}"
 roleRef:
   kind: Role
@@ -90,67 +67,45 @@ roleRef:
 EOF
 )
 
-# Create service instances
-# To start while testing we use rds in ci, but later can probably
-# just use the embedded postgres
-kubectl apply -f <(cat <<EOF
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceInstance
-metadata:
-  name: "${NAMESPACE}-db"
-  namespace: "${NAMESPACE}"
-spec:
-  clusterServiceClassExternalName: rdspostgresql
-  clusterServicePlanExternalName: production
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceInstance
-metadata:
-  name: "${NAMESPACE_CI}-db"
-  namespace: "${NAMESPACE_CI}"
-spec:
-  clusterServiceClassExternalName: rdspostgresql
-  clusterServicePlanExternalName: dev
+  # Create service instances
+  kubectl apply -f <(cat <<EOF
+  apiVersion: servicecatalog.k8s.io/v1beta1
+  kind: ServiceInstance
+  metadata:
+    name: "sentry-db"
+    namespace: "${NAMESPACE}"
+  spec:
+    clusterServiceClassExternalName: rdspostgresql
+    clusterServicePlanExternalName: dev # this is probably good enough
 EOF
 )
+done
 
 # todo wait for instances to be created, then we can bind to them
+# exit 0
 
-kubectl apply -f <(cat <<EOF
+for NAMESPACE in ${NAMESPACES}; do
+  # Create service binding
+  kubectl apply -f <(cat <<EOF
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceBinding
 metadata:
-  name: ${NAMESPACE}-db-binding
+  name: sentry-db-binding
   namespace: "${NAMESPACE}"
 spec:
   instanceRef:
-    name: "${NAMESPACE}-db"
----
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceBinding
-metadata:
-  name: ${NAMESPACE_CI}-db-binding
-  namespace: "${NAMESPACE_CI}"
-spec:
-  instanceRef:
-    name: "${NAMESPACE_CI}-db"
+    name: "sentry-db"
 EOF
 )
+  # Create a random password for redis
+  if ! kubectl -n ${NAMESPACE} get secret redis > /dev/null 2>&1 ; then
+    REDIS_PASSWORD="$(openssl rand -base64 12)"
+    kubectl -n "${NAMESPACE}" create secret generic redis \
+      --from-literal "redis-password=${REDIS_PASSWORD}"
+  fi
+done
 
-# Create a random password for redis
-REDIS_SECRET_NAME=redis
-if ! kubectl -n ${NAMESPACE} get secret ${REDIS_SECRET_NAME} > /dev/null 2>&1 ; then
-  REDIS_PASSWORD="$(openssl rand -base64 12)"
-  kubectl -n "${NAMESPACE}" create secret generic ${REDIS_SECRET_NAME} \
-    --from-literal "redis-password=${REDIS_PASSWORD}"
-fi
-if ! kubectl -n ${NAMESPACE_CI} get secret ${REDIS_SECRET_NAME} > /dev/null 2>&1 ; then
-  REDIS_PASSWORD="$(openssl rand -base64 12)"
-  kubectl -n "${NAMESPACE_CI}" create secret generic ${REDIS_SECRET_NAME} \
-    --from-literal "redis-password=${REDIS_PASSWORD}"
-fi
-
-secret="$(kubectl get "serviceaccount/${ci_user}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"
+secret="$(kubectl get "serviceaccount/ci-user" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"
 token="$(kubectl get secret "${secret}" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.data.token}' | base64 --decode)"
 
 cur_context="$(kubectl config view -o=jsonpath='{.current-context}' --flatten=true)"
@@ -174,7 +129,7 @@ kubeconfig="$(cat <<EOF
     {
       "context": {
         "cluster": "kubernetes",
-        "user": "${ci_user}",
+        "user": "ci-user",
         "namespace": "${NAMESPACE_CI}"
       },
       "name": "${NAMESPACE_CI}"
@@ -182,17 +137,17 @@ kubeconfig="$(cat <<EOF
     {
       "context": {
         "cluster": "kubernetes",
-        "user": "${ci_user}",
-        "namespace": "${NAMESPACE}"
+        "user": "ci-user",
+        "namespace": "${NAMESPACE_PROD}"
       },
-      "name": "${NAMESPACE}"
+      "name": "${NAMESPACE_PROD}"
     }
   ],
   "current-context": "${NAMESPACE}-ci",
   "kind": "Config",
   "users": [
     {
-      "name": "${ci_user}",
+      "name": "ci-user",
       "user": {
         "token": "${token}"
       }

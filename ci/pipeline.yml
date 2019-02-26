@@ -42,12 +42,11 @@ jobs:
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))
-        NAMESPACE: sentry-ci
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml
       params:
+        DEPLOY_ENV: ci
         KUBECONFIG: ((kubeconfig))
-        NAMESPACE: sentry-ci
 - name: delete-ci
   serial_groups:
   - ci
@@ -103,8 +102,8 @@ jobs:
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml
       params:
+        DEPLOY_ENV: prod
         KUBECONFIG: ((kubeconfig))
-        NAMESPACE: sentry
   on_failure:
     put: slack
     params:

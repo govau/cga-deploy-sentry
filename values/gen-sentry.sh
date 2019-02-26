@@ -17,13 +17,19 @@ set -o pipefail
 : "${GITHUB_API_SECRET:?Need to set GITHUB_API_SECRET}"
 : "${NAMESPACE:?Need to set NAMESPACE}"
 
-HOSTNAME=sentry.cloud.gov.au
-CLUSTER_ISSUER=letsencrypt-prod
-
 case ${DEPLOY_ENV} in
   ci)
     HOSTNAME=sentry-ci.kapps.l.cld.gov.au
     CLUSTER_ISSUER=letsencrypt-staging
+    ;;
+  prod)
+    HOSTNAME=sentry.cloud.gov.au
+    CLUSTER_ISSUER=letsencrypt-prod
+    ;;
+  *)
+    echo "Unknown DEPLOY_ENV: ${DEPLOY_ENV}"
+    exit 1
+    ;;
 esac
 
 TLS_SECRET_NAME="${HOSTNAME//./-}-tls"

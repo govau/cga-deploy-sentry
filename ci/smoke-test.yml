@@ -9,8 +9,8 @@ inputs:
 - name: deploy-src
 
 params:
+  DEPLOY_ENV:
   KUBECONFIG:
-  NAMESPACE:
 
 run:
   path: deploy-src/ci/smoke-test.sh

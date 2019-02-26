@@ -3,15 +3,15 @@
 set -eu
 set -o pipefail
 
+: "${DEPLOY_ENV:?Need to set DEPLOY_ENV}"
 : "${KUBECONFIG:?Need to set KUBECONFIG}"
-: "${NAMESPACE:?Need to set NAMESPACE}"
 
 echo $KUBECONFIG > k
 export KUBECONFIG=k
 
-kubectl version
+export NAMESPACE="sentry-${DEPLOY_ENV}"
 
-kubectl -n ${NAMESPACE}  get pods
+kubectl -n ${NAMESPACE} get pods
 
 # Get pods that aren't running
 # '--field-selector=status.phase=Running' confusingly includes pods that are crashed and stopped, so has to be combined

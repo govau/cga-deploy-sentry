@@ -13,9 +13,9 @@ inputs:
 outputs: []
 
 params:
+  DEPLOY_ENV:
   KUBECONFIG:
   TILLER_NAMESPACE: sentry-ci
-  NAMESPACE:
 
 run:
   path: deploy-src/ci/delete.sh

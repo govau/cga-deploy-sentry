@@ -3,12 +3,14 @@
 set -eu
 set -o pipefail
 
+: "${DEPLOY_ENV:?Need to set DEPLOY_ENV}"
 : "${KUBECONFIG:?Need to set KUBECONFIG}"
-: "${NAMESPACE:?Need to set NAMESPACE}"
 : "${TILLER_NAMESPACE:?Need to set TILLER_NAMESPACE}"
 
 echo $KUBECONFIG > k
 export KUBECONFIG=k
+
+export NAMESPACE="sentry-${DEPLOY_ENV}"
 
 ci_user=ci-user
 
