@@ -70,7 +70,7 @@ postgresql:
   postgresUser: "${POSTGRES_MASTER_USERNAME}"
   postgresPort: "${POSTGRES_PORT}"
 redis:
-  password: ""
+  password: "notused" # this is needed to get the chart to use the below existingSecret
   existingSecret: redis # created in k8s-bootstrap.sh
   enabled: false
   host: "redis-${DEPLOY_ENV}-master"
