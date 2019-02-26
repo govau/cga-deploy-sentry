@@ -30,6 +30,7 @@ jobs:
   - do:
     - get: charts
     - get: deploy-src
+      trigger: true
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
@@ -50,6 +51,18 @@ jobs:
       params:
         DEPLOY_ENV: ci
         KUBECONFIG: ((kubeconfig))
+  on_failure:
+    put: slack
+    params:
+      text: |
+        :x: $BUILD_PIPELINE_NAME $BUILD_JOB_NAME FAILED
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+  on_success:
+    put: slack
+    params:
+      text: |
+        :white_check_mark: $BUILD_PIPELINE_NAME $BUILD_JOB_NAME SUCCESS
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
 - name: delete-ci
   serial_groups:
   - ci
@@ -73,12 +86,6 @@ jobs:
     params:
       text: |
         :x: $BUILD_PIPELINE_NAME $BUILD_JOB_NAME FAILED
-        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
-  on_success:
-    put: slack
-    params:
-      text: |
-        :white_check_mark: $BUILD_PIPELINE_NAME $BUILD_JOB_NAME SUCCESS
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
 - name: deploy-prod
   serial: true
