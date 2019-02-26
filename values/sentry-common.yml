@@ -1,8 +1,0 @@
-image:
-  repository: docker.io/govau/cga-sentry
-  tag: latest
-# redis:
-  # password: foo
-  # existingSecret: redis # Created in k8s-bootstrap.sh
-
-# TODO move more stuff here from other values sources
