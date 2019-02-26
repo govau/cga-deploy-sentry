@@ -70,6 +70,7 @@ postgresql:
   postgresUser: "${POSTGRES_MASTER_USERNAME}"
   postgresPort: "${POSTGRES_PORT}"
 redis:
+  password: ""
   existingSecret: redis # created in k8s-bootstrap.sh
   enabled: false
   host: "redis-${DEPLOY_ENV}-master"
