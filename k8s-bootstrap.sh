@@ -143,7 +143,7 @@ kubeconfig="$(cat <<EOF
       "name": "${NAMESPACE_PROD}"
     }
   ],
-  "current-context": "${NAMESPACE}-ci",
+  "current-context": "${NAMESPACE_CI}",
   "kind": "Config",
   "users": [
     {
