@@ -34,11 +34,11 @@ esac
 
 TLS_SECRET_NAME="${HOSTNAME//./-}-tls"
 
-POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
-POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
-POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
-POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
-POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret ${NAMESPACE}-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
+POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
+POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
+POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
+POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
+POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
 
 cat <<EOF
 web:
