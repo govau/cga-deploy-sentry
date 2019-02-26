@@ -40,7 +40,7 @@ helm dependency update charts/stable/sentry/
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
   -f <($SCRIPT_DIR/../values/gen-sentry.sh) \
-  sentry-${DEPLOY_ENV}-foo charts/stable/sentry/
+  sentry-${DEPLOY_ENV} charts/stable/sentry/
 
 # Waiting for rollout to finish
 DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"
