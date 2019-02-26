@@ -85,7 +85,7 @@ ingress:
   hostname: "${HOSTNAME}"
   annotations:
     kubernetes.io/tls-acme: "true"
-    certmanager.k8s.io/cluster-issuer: "CLUSTER_ISSUER"
+    certmanager.k8s.io/cluster-issuer: "${CLUSTER_ISSUER}"
     ingress.kubernetes.io/force-ssl-redirect: "true"
   tls:
     - secretName: "${TLS_SECRET_NAME}"
