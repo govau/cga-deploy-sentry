@@ -10,12 +10,10 @@ set -o pipefail
 : "${EMAIL_USER:?Need to set EMAIL_USER}"
 : "${EMAIL_PASSWORD:?Need to set EMAIL_PASSWORD}"
 : "${EMAIL_USE_TLS:?Need to set EMAIL_USE_TLS}"
-: "${KUBECONFIG:?Need to set KUBECONFIG}"
 : "${GOOGLE_CLIENT_ID:?Need to set GOOGLE_CLIENT_ID}"
 : "${GOOGLE_CLIENT_SECRET:?Need to set GOOGLE_CLIENT_SECRET}"
 : "${GITHUB_APP_ID:?Need to set GITHUB_APP_ID}"
 : "${GITHUB_API_SECRET:?Need to set GITHUB_API_SECRET}"
-: "${NAMESPACE:?Need to set NAMESPACE}"
 
 case ${DEPLOY_ENV} in
   ci)
@@ -31,6 +29,8 @@ case ${DEPLOY_ENV} in
     exit 1
     ;;
 esac
+
+export NAMESPACE="sentry-${DEPLOY_ENV}"
 
 TLS_SECRET_NAME="${HOSTNAME//./-}-tls"
 
@@ -89,7 +89,7 @@ ingress:
       hosts:
       - ${HOSTNAME}
 user:
-  create: false # only needed the first time, or you can ssh to the container and run `sentry createuser`
+  create: false # only needed the first time, or you can ssh to the container and run 'sentry createuser'
 config:
   configYml: |
     system.url-prefix: https://${HOSTNAME}
