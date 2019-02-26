@@ -40,7 +40,7 @@ EOF
 
 for NAMESPACE in ${NAMESPACES}; do
   # Grant service account access to all namespaces
-kubectl apply -f <(cat <<EOF
+  kubectl apply -f <(cat <<EOF
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -69,14 +69,14 @@ EOF
 
   # Create service instances
   kubectl apply -f <(cat <<EOF
-  apiVersion: servicecatalog.k8s.io/v1beta1
-  kind: ServiceInstance
-  metadata:
-    name: "sentry-db"
-    namespace: "${NAMESPACE}"
-  spec:
-    clusterServiceClassExternalName: rdspostgresql
-    clusterServicePlanExternalName: dev # this is probably good enough
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
+metadata:
+  name: "sentry-db"
+  namespace: "${NAMESPACE}"
+spec:
+  clusterServiceClassExternalName: rdspostgresql
+  clusterServicePlanExternalName: dev
 EOF
 )
 done
