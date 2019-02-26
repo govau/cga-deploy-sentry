@@ -42,7 +42,6 @@ POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | 
 
 cat <<EOF
 web:
-  replicacount: 2
   env:
     - name: GITHUB_APP_ID
       value: "${GITHUB_APP_ID}"
