@@ -33,7 +33,7 @@ helm upgrade --install --wait \
 
 # Wait for redis to be ready
 kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
-  --watch deployment/redis-${NAMESPACE}-slave
+  --watch deployment/redis-${DEPLOY_ENV}-slave
 
 helm dependency update charts/stable/sentry/
 
