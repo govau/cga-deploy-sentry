@@ -98,7 +98,6 @@ jobs:
         GOOGLE_CLIENT_ID: ((google_client_id))
         GOOGLE_CLIENT_SECRET: ((google_client_secret))
         KUBECONFIG: ((kubeconfig))
-        NAMESPACE: sentry
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml
       params:

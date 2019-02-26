@@ -12,9 +12,13 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 echo $KUBECONFIG > k
 export KUBECONFIG=k
 
+set -x
+
 ci_user=ci-user
 
 export NAMESPACE="sentry-${DEPLOY_ENV}"
+
+kubectl -n ${NAMESPACE} get po # just a test
 
 # Starting tiller in the background"
 export HELM_HOST=:44134
