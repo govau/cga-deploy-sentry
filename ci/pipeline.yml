@@ -13,6 +13,12 @@ resources:
   source:
     branch: master
     uri: https://github.com/govau/cga-deploy-sentry
+- name: after-midnight
+  type: time
+  source:
+    start: 12:00 AM
+    stop: 1:00 AM
+    location: Australia/Sydney
 - name: slack
   type: slack-notification
   source:
@@ -71,16 +77,16 @@ jobs:
     - get: charts
       passed:
       - deploy-ci
-      trigger: true
     - get: deploy-src
       passed:
       - deploy-ci
+    - get: after-midnight
       trigger: true
     - task: delete
       file: deploy-src/ci/delete.yml
       params:
+        DEPLOY_ENV: ci
         KUBECONFIG: ((kubeconfig))
-        NAMESPACE: sentry-ci
   on_failure:
     put: slack
     params:
