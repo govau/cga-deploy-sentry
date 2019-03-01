@@ -41,6 +41,12 @@ POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding
 POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
 
 cat <<EOF
+cron:
+  resources:
+    limits:
+      # Increased to avoid CPUThrottlingHigh alerts
+      cpu: 500m
+      memory: 200Mi
 web:
   env:
     - name: GITHUB_APP_ID
