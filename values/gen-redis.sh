@@ -314,16 +314,14 @@ metrics:
 
   # Enable this if you're using https://github.com/coreos/prometheus-operator
   serviceMonitor:
-    # TODO - fix this
-    enabled: false
+    enabled: true
     namespace: "${NAMESPACE}"
     # fallback to the prometheus default unless specified
     # interval: 10s
-    ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
     ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
     ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
-    # selector:
-    #   prometheus: kube-prometheus
+    selector:
+      release: prometheus-operator
 
   ## Metrics exporter pod priorityClassName
   # priorityClassName: {}
