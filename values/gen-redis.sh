@@ -1,3 +1,13 @@
+#!/bin/bash
+
+set -eu
+set -o pipefail
+
+: "${DEPLOY_ENV:?Need to set DEPLOY_ENV}"
+
+export NAMESPACE="sentry-${DEPLOY_ENV}"
+
+cat <<EOF
 ## Cluster settings
 cluster:
   enabled: true
@@ -304,15 +314,16 @@ metrics:
 
   # Enable this if you're using https://github.com/coreos/prometheus-operator
   serviceMonitor:
+    # TODO - fix this
     enabled: false
-    namespace: monitoring
+    namespace: "${NAMESPACE}"
     # fallback to the prometheus default unless specified
     # interval: 10s
     ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
     ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
     ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
-    selector:
-      prometheus: kube-prometheus
+    # selector:
+    #   prometheus: kube-prometheus
 
   ## Metrics exporter pod priorityClassName
   # priorityClassName: {}
@@ -348,3 +359,4 @@ sysctlImage:
   pullPolicy: Always
   mountHostSys: false
   resources: {}
+EOF

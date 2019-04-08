@@ -62,7 +62,7 @@ helm init --client-only --service-account "ci-user" --wait
 # The redis included with sentry is a bit old, so we install our own
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
-  -f deploy-src/values/redis.yml \
+  -f <($SCRIPT_DIR/../values/gen-redis.sh) \
   redis-${DEPLOY_ENV} charts/stable/redis
 
 # Wait for redis to be ready
@@ -74,7 +74,7 @@ helm dependency update charts/stable/sentry/
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
   -f <($SCRIPT_DIR/../values/gen-sentry.sh) \
-  sentry-${DEPLOY_ENV} charts/stable/sentry/
+  sentry-${DEPLOY_ENV} charts/stable/sentry
 
 # Waiting for rollout to finish
 DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"

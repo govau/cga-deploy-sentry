@@ -44,6 +44,15 @@ for NAMESPACE in ${NAMESPACES}; do
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
+  name: "monitoring-manager"
+rules:
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["*"]
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
   name: "tiller-manager"
 rules:
 - apiGroups: ["", "batch", "extensions", "apps"]
@@ -82,6 +91,19 @@ rules:
   - get
   - list
   - watch
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: monitoring-manager-binding
+subjects:
+- kind: ServiceAccount
+  name: "ci-user"
+  namespace: "${NAMESPACE_CI}"
+roleRef:
+  kind: Role
+  name: "monitoring-manager"
+  apiGroup: rbac.authorization.k8s.io
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
