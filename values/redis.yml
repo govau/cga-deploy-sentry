@@ -72,9 +72,9 @@ master:
   ## Commands will be completely disabled by renaming each to an empty string.
   ## ref: https://redis.io/topics/security#disabling-of-specific-commands
   ##
-  disableCommands:
-  - FLUSHDB
-  - FLUSHALL
+  # disableCommands:
+  # - FLUSHDB
+  # - FLUSHALL
 
   ## Redis Master additional pod labels and annotations
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
