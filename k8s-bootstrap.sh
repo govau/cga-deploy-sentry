@@ -40,22 +40,53 @@ EOF
 
 for NAMESPACE in ${NAMESPACES}; do
   # Grant service account access to all namespaces
-  kubectl apply -f <(cat <<EOF
+  kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: "tiller-manager"
-  namespace: "${NAMESPACE}"
 rules:
 - apiGroups: ["", "batch", "extensions", "apps"]
   resources: ["*"]
   verbs: ["*"]
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "service-brokerer"
+rules:
+- apiGroups: ["servicecatalog.k8s.io"]
+  resources:
+  - serviceclasses
+  - serviceplans
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["servicecatalog.k8s.io"]
+  resources:
+  - servicebindings
+  - serviceinstances
+  verbs: ["*"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "service-brokerer"
+rules:
+- apiGroups: ["servicecatalog.k8s.io"]
+  resources:
+  - clusterserviceclasses
+  - clusterserviceplans
+  verbs:
+  - get
+  - list
+  - watch
+---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tiller-binding
-  namespace: "${NAMESPACE}"
 subjects:
 - kind: ServiceAccount
   name: "ci-user"
@@ -64,45 +95,34 @@ roleRef:
   kind: Role
   name: "tiller-manager"
   apiGroup: rbac.authorization.k8s.io
-EOF
-)
-
-  # Create service instances
-  kubectl apply -f <(cat <<EOF
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceInstance
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: "sentry-db"
-  namespace: "${NAMESPACE}"
-spec:
-  clusterServiceClassExternalName: rdspostgresql
-  clusterServicePlanExternalName: dev
-EOF
-)
-done
-
-# todo wait for instances to be created, then we can bind to them
-# exit 0
-
-for NAMESPACE in ${NAMESPACES}; do
-  # Create service binding
-  kubectl apply -f <(cat <<EOF
-apiVersion: servicecatalog.k8s.io/v1beta1
-kind: ServiceBinding
+  name: service-brokerer-binding
+subjects:
+- kind: ServiceAccount
+  name: "ci-user"
+  namespace: "${NAMESPACE_CI}"
+roleRef:
+  kind: Role
+  name: "service-brokerer"
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: sentry-db-binding
-  namespace: "${NAMESPACE}"
-spec:
-  instanceRef:
-    name: "sentry-db"
+  name: service-brokerer-binding
+subjects:
+- kind: ServiceAccount
+  name: "ci-user"
+  namespace: "${NAMESPACE_CI}"
+roleRef:
+  kind: ClusterRole
+  name: "service-brokerer"
+  apiGroup: rbac.authorization.k8s.io
 EOF
 )
-  # Create a random password for redis
-  if ! kubectl -n ${NAMESPACE} get secret redis > /dev/null 2>&1 ; then
-    REDIS_PASSWORD="$(openssl rand -base64 12)"
-    kubectl -n "${NAMESPACE}" create secret generic redis \
-      --from-literal "redis-password=${REDIS_PASSWORD}"
-  fi
 done
 
 secret="$(kubectl get "serviceaccount/ci-user" --namespace "${NAMESPACE_CI}" -o=jsonpath='{.secrets[0].name}')"

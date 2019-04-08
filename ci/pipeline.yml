@@ -40,6 +40,7 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        DB_PLAN: dev
         DEPLOY_ENV: ci
         EMAIL_FROM_ADDRESS: ((email_from_address))
         EMAIL_HOST: ((email_host))
@@ -106,6 +107,7 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        DB_PLAN: production
         DEPLOY_ENV: prod
         EMAIL_FROM_ADDRESS: ((email_from_address))
         EMAIL_HOST: ((email_host))

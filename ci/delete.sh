@@ -33,7 +33,5 @@ kubectl -n ${NAMESPACE} delete pvc redis-data-redis-${DEPLOY_ENV}-master-0 || tr
 kubectl -n ${NAMESPACE} delete pvc redis-data-sentry-${DEPLOY_ENV}-redis-master-0 || true
 kubectl -n ${NAMESPACE} delete pvc ${NAMESPACE}-postgresql || true
 
-# For now the db needs to be recreated with k8s-bootstrap.sh,
-# which is annoying, but saves money.
 kubectl -n ${NAMESPACE} delete ServiceBinding sentry-db-binding || true
 kubectl -n ${NAMESPACE} delete ServiceInstance sentry-db || true

@@ -14,6 +14,7 @@ inputs:
 outputs: []
 
 params:
+  DB_PLAN:
   DEPLOY_ENV:
   EMAIL_FROM_ADDRESS:
   EMAIL_HOST:
