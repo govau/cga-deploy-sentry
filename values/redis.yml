@@ -335,6 +335,7 @@ volumePermissions:
 ##
 configmap: |-
   # maxmemory-policy volatile-lru
+  save 120 1
 
 ## Sysctl InitContainer
 ## used to perform sysctl operation to modify Kernel settings (needed sometimes to avoid warnings)
