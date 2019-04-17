@@ -57,6 +57,8 @@ web:
       value: "${GOOGLE_CLIENT_SECRET}"
     - name: GITHUB_REQUIRE_VERIFIED_EMAIL
       value: "True"
+    - name: SENTRY_USE_SSL
+      value: "True"
     - name: SENTRY_SINGLE_ORGANIZATION
       value: "False"
 email:
@@ -101,12 +103,10 @@ config:
   configYml: |
     system.url-prefix: https://${HOSTNAME}
   sentryConfPy: |
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    if 'GITHUB_APP_ID' in os.environ:
+        GITHUB_REQUIRE_VERIFIED_EMAIL = True
+
     GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
     GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
-    GITHUB_APP_ID = env('GITHUB_APP_ID')
-    GITHUB_API_SECRET = env('GITHUB_API_SECRET')
-    GITHUB_REQUIRE_VERIFIED_EMAIL = True
+
 EOF
