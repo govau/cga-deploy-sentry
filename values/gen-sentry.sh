@@ -18,11 +18,9 @@ set -o pipefail
 case ${DEPLOY_ENV} in
   ci)
     HOSTNAME=sentry-ci.kapps.l.cld.gov.au
-    CLUSTER_ISSUER=letsencrypt-staging
     ;;
   prod)
     HOSTNAME=sentry.cloud.gov.au
-    CLUSTER_ISSUER=letsencrypt-prod
     ;;
   *)
     echo "Unknown DEPLOY_ENV: ${DEPLOY_ENV}"
@@ -91,7 +89,7 @@ ingress:
   hostname: "${HOSTNAME}"
   annotations:
     kubernetes.io/tls-acme: "true"
-    certmanager.k8s.io/cluster-issuer: "${CLUSTER_ISSUER}"
+    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     ingress.kubernetes.io/force-ssl-redirect: "true"
   tls:
     - secretName: "${TLS_SECRET_NAME}"
