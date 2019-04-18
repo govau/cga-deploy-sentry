@@ -110,10 +110,12 @@ config:
     if 'GITHUB_APP_ID' in os.environ:
         GITHUB_REQUIRE_VERIFIED_EMAIL = True
 
-    GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
-    GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
-bootstrap:
-  run: true
+    if 'GOOGLE_CLIENT_ID' in os.environ:
+        GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+        GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
+
+    SENTRY_FEATURES['auth:register'] = False
+    SENTRY_BEACON = True
 EOF
 
 if [[ ${USER_CREATE} == "true" ]]; then
