@@ -10,7 +10,6 @@ set -o pipefail
 : "${EMAIL_PORT:?Need to set EMAIL_PORT}"
 : "${EMAIL_USER:?Need to set EMAIL_USER}"
 : "${EMAIL_PASSWORD:?Need to set EMAIL_PASSWORD}"
-: "${EMAIL_USE_TLS:?Need to set EMAIL_USE_TLS}"
 : "${GOOGLE_CLIENT_ID:?Need to set GOOGLE_CLIENT_ID}"
 : "${GOOGLE_CLIENT_SECRET:?Need to set GOOGLE_CLIENT_SECRET}"
 : "${GITHUB_APP_ID:?Need to set GITHUB_APP_ID}"
@@ -72,7 +71,7 @@ email:
   port: ${EMAIL_PORT}
   user: ${EMAIL_USER}
   password: ${EMAIL_PASSWORD}
-  use_tls: ${EMAIL_USE_TLS}
+  use_tls: "True"
 postgresql:
   enabled: false
   postgresDatabase: "${POSTGRES_DB_NAME}"

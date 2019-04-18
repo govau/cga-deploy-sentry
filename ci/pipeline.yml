@@ -50,7 +50,6 @@ jobs:
         EMAIL_PORT: ((email_port))
         EMAIL_USER: ((email_user))
         EMAIL_PASSWORD: ((email_password))
-        EMAIL_USE_TLS: "YES"
         GITHUB_APP_ID: ((github_app_id))
         GITHUB_API_SECRET: ((github_api_secret))
         GOOGLE_CLIENT_ID: ((google_client_id))
@@ -118,7 +117,6 @@ jobs:
         EMAIL_PORT: ((email_port))
         EMAIL_USER: ((email_user))
         EMAIL_PASSWORD: ((email_password))
-        EMAIL_USE_TLS: "YES"
         GITHUB_APP_ID: ((github_app_id))
         GITHUB_API_SECRET: ((github_api_secret))
         GOOGLE_CLIENT_ID: ((google_client_id))
