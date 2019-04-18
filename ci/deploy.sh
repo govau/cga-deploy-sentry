@@ -71,9 +71,12 @@ kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
 
 helm dependency update charts/stable/sentry/
 
+SENTRY_VALUES_FILE="$(mktemp)"
+$SCRIPT_DIR/../values/gen-sentry.sh > ${SENTRY_VALUES_FILE}
+
 helm upgrade --install --wait \
   --namespace ${NAMESPACE} \
-  -f <($SCRIPT_DIR/../values/gen-sentry.sh) \
+  -f ${SENTRY_VALUES_FILE} \
   sentry-${DEPLOY_ENV} charts/stable/sentry
 
 # Waiting for rollout to finish
