@@ -25,6 +25,15 @@ set_credhub_value() {
   credhub set -n "/concourse/apps/$PIPELINE/$KEY" -t value -v "${VALUE}"
 }
 
+assert_credhub_value() {
+  KEY="$1"
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/${KEY}" > /dev/null 2>&1 ; then
+    echo "${KEY} not set in credhub. Add it to your environment (e.g. use .envrc) and re-run this script"
+    exit 1
+  fi
+
+}
+
 echo "Ensuring you are logged in to credhub"
 if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
   https_proxy=socks5://localhost:8112 credhub login --sso
@@ -106,3 +115,18 @@ else
     exit 1
   fi
 fi
+
+if [ -n "${ADMIN_EMAIL}" ]; then
+  set_credhub_value ADMIN_EMAIL "${ADMIN_EMAIL}"
+else
+  assert_credhub_value ADMIN_EMAIL
+fi
+
+if [ -n "${BOOTSTRAP_USER_EMAIL}" ]; then
+  set_credhub_value BOOTSTRAP_USER_EMAIL "${BOOTSTRAP_USER_EMAIL}"
+  set_credhub_value BOOTSTRAP_USER_PASSWORD "${BOOTSTRAP_USER_PASSWORD}"
+else
+  assert_credhub_value BOOTSTRAP_USER_EMAIL
+  assert_credhub_value BOOTSTRAP_USER_PASSWORD
+fi
+

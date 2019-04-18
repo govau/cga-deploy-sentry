@@ -40,6 +40,9 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        ADMIN_EMAIL: ((ADMIN_EMAIL))
+        BOOTSTRAP_USER_EMAIL: ((BOOTSTRAP_USER_EMAIL))
+        BOOTSTRAP_USER_PASSWORD: ((BOOTSTRAP_USER_PASSWORD))
         DB_PLAN: dev
         DEPLOY_ENV: ci
         EMAIL_FROM_ADDRESS: ((email_from_address))
@@ -107,6 +110,7 @@ jobs:
     - task: deploy
       file: deploy-src/ci/deploy.yml
       params:
+        ADMIN_EMAIL: ((ADMIN_EMAIL))
         DB_PLAN: production
         DEPLOY_ENV: prod
         EMAIL_FROM_ADDRESS: ((email_from_address))

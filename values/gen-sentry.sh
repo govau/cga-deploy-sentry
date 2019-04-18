@@ -3,6 +3,7 @@
 set -eu
 set -o pipefail
 
+: "${ADMIN_EMAIL:?Need to set ADMIN_EMAIL}"
 : "${DEPLOY_ENV:?Need to set DEPLOY_ENV}"
 : "${EMAIL_FROM_ADDRESS:?Need to set EMAIL_FROM_ADDRESS}"
 : "${EMAIL_HOST:?Need to set EMAIL_HOST}"
@@ -17,10 +18,14 @@ set -o pipefail
 
 case ${DEPLOY_ENV} in
   ci)
+    : "${BOOTSTRAP_USER_EMAIL:?Need to set BOOTSTRAP_USER_EMAIL}"
+    : "${BOOTSTRAP_USER_PASSWORD:?Need to set BOOTSTRAP_USER_PASSWORD}"
     HOSTNAME=sentry-ci.kapps.l.cld.gov.au
+    USER_CREATE=true
     ;;
   prod)
     HOSTNAME=sentry.cloud.gov.au
+    USER_CREATE=false
     ;;
   *)
     echo "Unknown DEPLOY_ENV: ${DEPLOY_ENV}"
@@ -97,16 +102,25 @@ ingress:
     - secretName: "${TLS_SECRET_NAME}"
       hosts:
       - ${HOSTNAME}
-user:
-  create: false # only needed the first time, or you can ssh to the container and run 'sentry createuser'
 config:
   configYml: |
     system.url-prefix: https://${HOSTNAME}
+    system.admin-email: ${ADMIN_EMAIL}
   sentryConfPy: |
     if 'GITHUB_APP_ID' in os.environ:
         GITHUB_REQUIRE_VERIFIED_EMAIL = True
 
     GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
     GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
-
+bootstrap:
+  run: true
 EOF
+
+if [[ ${USER_CREATE} == "true" ]]; then
+cat <<EOF
+user:
+  create: ${USER_CREATE}
+  email: ${BOOTSTRAP_USER_EMAIL}
+  password: ${BOOTSTRAP_USER_PASSWORD}
+EOF
+fi
