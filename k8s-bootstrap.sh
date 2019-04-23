@@ -47,7 +47,9 @@ metadata:
   name: "monitoring-manager"
 rules:
 - apiGroups: ["monitoring.coreos.com"]
-  resources: ["servicemonitors"]
+  resources:
+  - prometheusrules
+  - servicemonitors
   verbs: ["*"]
 ---
 kind: Role
