@@ -61,6 +61,7 @@ helm init --client-only --service-account "ci-user" --wait
 
 # The redis included with sentry is a bit old, so we install our own
 helm upgrade --install --wait \
+  --version 6.4.5 \
   --namespace ${NAMESPACE} \
   -f <($SCRIPT_DIR/../values/gen-redis.sh) \
   redis-${DEPLOY_ENV} charts/stable/redis
@@ -69,12 +70,35 @@ helm upgrade --install --wait \
 kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
   --watch deployment/redis-${DEPLOY_ENV}-slave
 
+kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: prometheus-operator
+    release: prometheus-operator
+  name: redis-${DEPLOY_ENV}-rules
+  namespace: ${NAMESPACE}
+spec:
+  groups:
+  - name: redis-exporter
+    rules:
+    - alert: RedisExporterLastScrapeError
+      annotations:
+        summary: Redis exporter scrape error
+        message: The last redis exporter scrape showed an error
+      expr: redis_exporter_last_scrape_error > 0
+      labels:
+        severity: error
+EOF
+)
+
 helm dependency update charts/stable/sentry/
 
 SENTRY_VALUES_FILE="$(mktemp)"
 $SCRIPT_DIR/../values/gen-sentry.sh > ${SENTRY_VALUES_FILE}
 
-helm upgrade --install --wait \
+helm upgrade --install --wait --recreate-pods \
   --namespace ${NAMESPACE} \
   -f ${SENTRY_VALUES_FILE} \
   sentry-${DEPLOY_ENV} charts/stable/sentry
