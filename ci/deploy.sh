@@ -67,9 +67,15 @@ helm upgrade --install --wait \
   redis-${DEPLOY_ENV} charts/stable/redis
 
 # Wait for redis to be ready
-kubectl rollout status --namespace=${NAMESPACE} --timeout=2m \
-  --watch deployment/redis-${DEPLOY_ENV}-slave
+kubectl rollout status --namespace=${NAMESPACE} \
+  --timeout=2m \
+  --watch statefulset/redis-${DEPLOY_ENV}-master
 
+kubectl rollout status --namespace=${NAMESPACE} \
+  --timeout=2m \
+  --watch statefulset/redis-${DEPLOY_ENV}-slave
+
+# Add prometheus rule for monitoring redis
 kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
