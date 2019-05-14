@@ -3,8 +3,8 @@ resources:
 - name: sentry-chart
   type: git
   source:
-    branch: master
-    uri: https://github.com/helm/charts
+    branch: sentry-upgrade-hook
+    uri: https://github.com/govau/charts
     paths:
     - stable/sentry/**
 - name: redis-chart
