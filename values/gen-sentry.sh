@@ -87,7 +87,7 @@ redis:
   port: "6379"
 image:
   repository: docker.io/govau/cga-sentry
-  tag: "9.0-20190418"
+  tag: "9.1-20190514"
 service:
   type: ClusterIP
 ingress:
@@ -115,6 +115,7 @@ config:
 
     SENTRY_FEATURES['auth:register'] = False
     SENTRY_BEACON = True
+
 EOF
 
 if [[ ${USER_CREATE} == "true" ]]; then
