@@ -72,7 +72,7 @@ kubectl rollout status --namespace=${NAMESPACE} \
 
 kubectl rollout status --namespace=${NAMESPACE} \
   --timeout=2m \
-  --watch statefulset/redis-${DEPLOY_ENV}-slave
+  --watch deployment/redis-${DEPLOY_ENV}-slave
 
 # Add prometheus rule for monitoring redis
 kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF

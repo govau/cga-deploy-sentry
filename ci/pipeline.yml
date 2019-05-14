@@ -12,9 +12,6 @@ resources:
   source:
     branch: master
     uri: https://github.com/helm/charts
-    paths:
-    - stable/redis/**
-    version: "a83f5be3b228389177271ffb6c74c4308f8d678c"
 - name: deploy-src
   type: git
   source:
@@ -42,6 +39,10 @@ jobs:
   plan:
   - do:
     - get: redis-chart
+      version:
+        # We dont want to keep redis up to date until we are
+        # really sure we wont lose data, so it is pinned
+        ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
     - get: sentry-chart
     - get: deploy-src
       trigger: true
