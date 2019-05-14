@@ -9,7 +9,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-function trim_to_one_access_key(){
+function trim_to_one_access_key() {
     iam_user=$1
     key_count=$(aws iam list-access-keys --user-name "${iam_user}" | jq '.AccessKeyMetadata | length')
     if [[ $key_count > 1 ]]; then
@@ -103,7 +103,6 @@ fi
 
 echo "Ensuring email secrets are set if they are in our env"
 if [ -n "$EMAIL_FROM_ADDRESS" ]; then
-  set_credhub_value default_admin_user "${DEFAULT_ADMIN_USER}"
   set_credhub_value email_from_address "${EMAIL_FROM_ADDRESS}"
   set_credhub_value email_host "${EMAIL_HOST}"
   set_credhub_value email_port "${EMAIL_PORT}"
