@@ -8,8 +8,9 @@ image_resource:
     tag: latest
 
 inputs:
-- name: charts
 - name: deploy-src
+- name: redis-chart
+- name: sentry-chart
 
 outputs: []
 

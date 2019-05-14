@@ -1,13 +1,20 @@
 groups: []
 resources:
-- name: charts
+- name: sentry-chart
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/helm/charts
+    paths:
+    - stable/sentry/**
+- name: redis-chart
   type: git
   source:
     branch: master
     uri: https://github.com/helm/charts
     paths:
     - stable/redis/**
-    - stable/sentry/**
+    version: "a83f5be3b228389177271ffb6c74c4308f8d678c"
 - name: deploy-src
   type: git
   source:
@@ -34,7 +41,8 @@ jobs:
   - ci
   plan:
   - do:
-    - get: charts
+    - get: redis-chart
+    - get: sentry-chart
     - get: deploy-src
       trigger: true
     - task: deploy
@@ -77,9 +85,6 @@ jobs:
   - ci
   plan:
   - do:
-    - get: charts
-      passed:
-      - deploy-ci
     - get: deploy-src
       passed:
       - deploy-ci
@@ -100,7 +105,10 @@ jobs:
   serial: true
   plan:
   - do:
-    - get: charts
+    - get: redis-chart
+      passed:
+      - deploy-ci
+    - get: sentry-chart
       passed:
       - deploy-ci
     - get: deploy-src

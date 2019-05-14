@@ -61,10 +61,9 @@ helm init --client-only --service-account "ci-user" --wait
 
 # The redis included with sentry is a bit old, so we install our own
 helm upgrade --install --wait \
-  --version 6.4.5 \
   --namespace ${NAMESPACE} \
   -f <($SCRIPT_DIR/../values/gen-redis.sh) \
-  redis-${DEPLOY_ENV} charts/stable/redis
+  redis-${DEPLOY_ENV} redis-chart/stable/redis
 
 # Wait for redis to be ready
 kubectl rollout status --namespace=${NAMESPACE} \
@@ -99,7 +98,7 @@ spec:
 EOF
 )
 
-helm dependency update charts/stable/sentry/
+helm dependency update sentry-chart/stable/sentry/
 
 SENTRY_VALUES_FILE="$(mktemp)"
 $SCRIPT_DIR/../values/gen-sentry.sh > ${SENTRY_VALUES_FILE}
@@ -107,7 +106,7 @@ $SCRIPT_DIR/../values/gen-sentry.sh > ${SENTRY_VALUES_FILE}
 helm upgrade --install --wait --recreate-pods \
   --namespace ${NAMESPACE} \
   -f ${SENTRY_VALUES_FILE} \
-  sentry-${DEPLOY_ENV} charts/stable/sentry
+  sentry-${DEPLOY_ENV} sentry-chart/stable/sentry
 
 # Waiting for rollout to finish
 DEPLOYMENTS="$(kubectl -n ${NAMESPACE} get deployments -o json | jq -r .items[].metadata.name)"
