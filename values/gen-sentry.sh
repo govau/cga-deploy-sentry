@@ -87,7 +87,7 @@ redis:
   port: "6379"
 image:
   repository: docker.io/govau/cga-sentry
-  tag: "9.1.1-20190514"
+  tag: "9.1.1-20190515"
 service:
   type: ClusterIP
 ingress:
