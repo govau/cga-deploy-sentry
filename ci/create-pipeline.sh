@@ -17,7 +17,7 @@ fly -t ${TARGET} set-pipeline -n \
 
 # We have pinned redis, so force concourse to fetch it
 fly -t ${TARGET} check-resource \
-  --resource "${PIPELINE}/charts" \
+  --resource "${PIPELINE}/redis-chart" \
   --from  "ref:a83f5be3b228389177271ffb6c74c4308f8d678c"
 
 # Check all other resources for errors
