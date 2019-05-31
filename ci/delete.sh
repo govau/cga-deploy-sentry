@@ -22,6 +22,9 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
 helm init --client-only --service-account "${ci_user}" --wait
 
+kubectl -n ${NAMESPACE} delete ServiceMonitor/sentry || true
+kubectl -n ${NAMESPACE} delete PrometheusRule/redis-${DEPLOY_ENV}-rules || true
+
 # https://github.com/helm/charts/tree/master/stable/sentry#uninstalling-the-chart
 helm delete "sentry-${DEPLOY_ENV}" --purge || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init || true

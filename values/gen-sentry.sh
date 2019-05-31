@@ -116,6 +116,20 @@ config:
     SENTRY_FEATURES['auth:register'] = False
     SENTRY_BEACON = True
 
+metrics:
+  enabled: true
+  service:
+    type: ClusterIP
+    labels:
+      monitor: me
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
 EOF
 
 if [[ ${USER_CREATE} == "true" ]]; then

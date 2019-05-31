@@ -115,3 +115,20 @@ for DEPLOYMENT in $DEPLOYMENTS; do
         --watch deployment/${DEPLOYMENT}
 done
 
+# Add prometheus servicemonitor for monitoring sentry
+kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "sentry"
+  labels:
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      monitor: me
+  endpoints:
+  - port: metrics
+    path: /metrics
+EOF
+)

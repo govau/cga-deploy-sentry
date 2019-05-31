@@ -1,12 +1,19 @@
 groups: []
 resources:
-- name: charts
+- name: sentry-chart
   type: git
   source:
-    uri: https://github.com/helm/charts
+    # Using branch until PR has been merged:
+    # https://github.com/helm/charts/pull/14348
+    branch: sentry-metrics
+    uri: https://github.com/govau/charts
     paths:
-    - stable/redis/**
     - stable/sentry/**
+- name: redis-chart
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/helm/charts
 - name: deploy-src
   type: git
   source:
@@ -34,13 +41,11 @@ jobs:
   plan:
   - do:
     - get: redis-chart
-      resource: charts
       version:
         # We dont want to keep redis up to date until we are
         # really sure we wont lose data, so it is pinned
         ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
     - get: sentry-chart
-      resource: charts
     - get: deploy-src
       trigger: true
     - task: deploy
@@ -104,11 +109,9 @@ jobs:
   plan:
   - do:
     - get: redis-chart
-      resource: charts
       passed:
       - deploy-ci
     - get: sentry-chart
-      resource: charts
       passed:
       - deploy-ci
     - get: deploy-src
