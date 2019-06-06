@@ -90,6 +90,20 @@ else
   set_credhub_value google_client_secret "${GOOGLE_CLIENT_SECRET}"
 fi
 
+# secrets for https://github.com/siemens/sentry-auth-oidc
+echo "Ensuring oidc auth secrets are set if they are in our env"
+if [ -n "$OIDC_CLIENT_ID" ]; then
+  set_credhub_value oidc_client_id "${OIDC_CLIENT_ID}"
+  set_credhub_value oidc_client_secret "${OIDC_CLIENT_SECRET}"
+  set_credhub_value oidc_domain "${OIDC_DOMAIN}"
+  set_credhub_value oidc_scope "${OIDC_SCOPE}"
+else
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/oidc_client_id" > /dev/null 2>&1 ; then
+    echo "OIDC auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
+    exit 1
+  fi
+fi
+
 echo "Ensuring github auth secrets are set if they are in our env"
 if [ -n "$GITHUB_APP_ID" ]; then
   set_credhub_value github_app_id "${GITHUB_APP_ID}"

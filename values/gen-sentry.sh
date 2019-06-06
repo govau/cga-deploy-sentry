@@ -12,6 +12,10 @@ set -o pipefail
 : "${EMAIL_PASSWORD:?Need to set EMAIL_PASSWORD}"
 : "${GOOGLE_CLIENT_ID:?Need to set GOOGLE_CLIENT_ID}"
 : "${GOOGLE_CLIENT_SECRET:?Need to set GOOGLE_CLIENT_SECRET}"
+: "${OIDC_CLIENT_ID:?Need to set OIDC_CLIENT_ID}"
+: "${OIDC_CLIENT_SECRET:?Need to set OIDC_CLIENT_SECRET}"
+: "${OIDC_DOMAIN:?Need to set OIDC_DOMAIN}"
+: "${OIDC_SCOPE:?Need to set OIDC_SCOPE}"
 : "${GITHUB_APP_ID:?Need to set GITHUB_APP_ID}"
 : "${GITHUB_API_SECRET:?Need to set GITHUB_API_SECRET}"
 
@@ -59,6 +63,14 @@ web:
       value: "${GOOGLE_CLIENT_ID}"
     - name: GOOGLE_CLIENT_SECRET
       value: "${GOOGLE_CLIENT_SECRET}"
+    - name: OIDC_CLIENT_ID
+      value: "${OIDC_CLIENT_ID}"
+    - name: OIDC_CLIENT_SECRET
+      value: "${OIDC_CLIENT_SECRET}"
+    - name: OIDC_SCOPE
+      value: "${OIDC_SCOPE}"
+    - name: OIDC_DOMAIN
+      value: "${OIDC_DOMAIN}"
     - name: GITHUB_REQUIRE_VERIFIED_EMAIL
       value: "True"
     - name: SENTRY_USE_SSL
@@ -87,7 +99,7 @@ redis:
   port: "6379"
 image:
   repository: docker.io/govau/cga-sentry
-  tag: "9.1.1-20190515"
+  tag: "9.1.1-20190603"
 service:
   type: ClusterIP
 ingress:
@@ -113,6 +125,12 @@ config:
         GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
         GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 
+    if 'OIDC_CLIENT_ID' in os.environ:
+        OIDC_CLIENT_ID = env('OIDC_CLIENT_ID')
+        OIDC_CLIENT_SECRET = env('OIDC_CLIENT_SECRET')
+        OIDC_DOMAIN = env('OIDC_DOMAIN')
+        OIDC_SCOPE = env('OIDC_SCOPE')
+
     SENTRY_FEATURES['auth:register'] = False
     SENTRY_BEACON = True
 
@@ -120,8 +138,6 @@ metrics:
   enabled: true
   service:
     type: ClusterIP
-    labels:
-      monitor: me
   resources:
     limits:
       cpu: 200m
@@ -129,6 +145,11 @@ metrics:
     requests:
       cpu: 100m
       memory: 100Mi
+  serviceMonitor:
+    enabled: true
+    namespace: "${NAMESPACE}"
+    selector:
+      release: prometheus-operator
 
 EOF
 
