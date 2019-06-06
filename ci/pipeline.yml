@@ -3,10 +3,8 @@ resources:
 - name: sentry-chart
   type: git
   source:
-    # Using branch until PR has been merged:
-    # https://github.com/helm/charts/pull/14348
-    branch: sentry-metrics
-    uri: https://github.com/govau/charts
+    branch: master
+    uri: https://github.com/helm/charts
     paths:
     - stable/sentry/**
 - name: redis-chart
