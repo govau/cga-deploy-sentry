@@ -46,6 +46,13 @@ POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding
 POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
 POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
 
+REDIS_BINDING_JSON="$(kubectl -n ${NAMESPACE} get secret sentry-redis-binding -o json)"
+REDIS_HOSTNAME="$(echo ${REDIS_BINDING_JSON} | jq -r '.data.hostname' | base64 -d)"
+REDIS_PORT="$(echo ${REDIS_BINDING_JSON} | jq -r '.data.port' | base64 -d)"
+REDIS_PASSWORD="$(echo ${REDIS_BINDING_JSON} | jq -r '.data.password' | base64 -d)"
+REDIS_SCHEME="$(echo ${REDIS_BINDING_JSON} | jq -r '.data.scheme' | base64 -d)"
+REDIS_URL="$(echo ${REDIS_BINDING_JSON} | jq -r '.data.url' | base64 -d)"
+
 cat <<EOF
 cron:
   resources:
@@ -53,7 +60,17 @@ cron:
       # Increased to avoid CPUThrottlingHigh alerts
       cpu: 500m
       memory: 200Mi
+    requests:
+      # cpu: 300m
+      memory: 200Mi
 web:
+  resources:
+    limits:
+      # cpu: 500m
+      memory: 800Mi
+    requests:
+      # cpu: 300m
+      memory: 500Mi
   env:
     - name: GITHUB_APP_ID
       value: "${GITHUB_APP_ID}"
@@ -77,6 +94,19 @@ web:
       value: "True"
     - name: SENTRY_SINGLE_ORGANIZATION
       value: "False"
+    - name: REDIS_SSL
+      value: "True"
+worker:
+  env:
+    - name: REDIS_SSL
+      value: "True"
+  resources:
+    limits:
+    #   cpu: 300m
+      memory: 500Mi
+    requests:
+      # cpu: 100m
+      memory: 300Mi
 email:
   from_address: ${EMAIL_FROM_ADDRESS}
   host: ${EMAIL_HOST}
@@ -92,14 +122,14 @@ postgresql:
   postgresUser: "${POSTGRES_MASTER_USERNAME}"
   postgresPort: "${POSTGRES_PORT}"
 redis:
-  password: "notused" # this is needed to get the chart to use the below existingSecret
-  existingSecret: redis # created in k8s-bootstrap.sh
-  enabled: false
-  host: "redis-${DEPLOY_ENV}-master"
-  port: "6379"
+  enabled: false # dont use internal redis chart
+  password: "${REDIS_PASSWORD}"
+  host: "${REDIS_HOSTNAME}"
+  port: "${REDIS_PORT}"
 image:
   repository: docker.io/govau/cga-sentry
-  tag: "9.1.1-20190603"
+  tag: "9.1.1-20190607"
+  pullPolicy: Always
 service:
   type: ClusterIP
 ingress:

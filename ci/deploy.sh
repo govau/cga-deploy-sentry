@@ -33,8 +33,25 @@ EOF
 )
 fi
 
+# Create a redis for sentry if one doesnt already exist
+if ! kubectl -n ${NAMESPACE} get serviceinstance sentry-redis > /dev/null 2>&1 ; then
+  kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
+metadata:
+  name: sentry-redis
+spec:
+  clusterServiceClassExternalName: redis
+  clusterServicePlanExternalName: standard
+EOF
+)
+fi
+
 echo "Wait for ${NAMESPACE} sentry-db to be ready"
 kubectl -n "${NAMESPACE}" wait --for=condition=Ready --timeout=30m "ServiceInstance/sentry-db"
+
+echo "Wait for ${NAMESPACE} sentry-redis to be ready"
+kubectl -n "${NAMESPACE}" wait --for=condition=Ready --timeout=30m "ServiceInstance/sentry-redis"
 
 kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
 apiVersion: servicecatalog.k8s.io/v1beta1
@@ -44,15 +61,23 @@ metadata:
 spec:
   instanceRef:
     name: "sentry-db"
+---
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: sentry-redis-binding
+spec:
+  instanceRef:
+    name: "sentry-redis"
 EOF
 )
 
-# Create a new random password for redis if one doesnt already exist
-if ! kubectl -n ${NAMESPACE} get secret redis > /dev/null 2>&1 ; then
-  REDIS_PASSWORD="$(openssl rand -base64 12)"
-  kubectl -n "${NAMESPACE}" create secret generic redis \
-    --from-literal "redis-password=${REDIS_PASSWORD}"
-fi
+# # Create a new random password for redis if one doesnt already exist
+# if ! kubectl -n ${NAMESPACE} get secret redis > /dev/null 2>&1 ; then
+#   REDIS_PASSWORD="$(openssl rand -base64 12)"
+#   kubectl -n "${NAMESPACE}" create secret generic redis \
+#     --from-literal "redis-password=${REDIS_PASSWORD}"
+# fi
 
 # Starting tiller in the background"
 export HELM_HOST=:44134
@@ -60,43 +85,43 @@ tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 helm init --client-only --service-account "ci-user" --wait
 
 # The redis included with sentry is a bit old, so we install our own
-helm upgrade --install --wait \
-  --namespace ${NAMESPACE} \
-  -f <($SCRIPT_DIR/../values/gen-redis.sh) \
-  redis-${DEPLOY_ENV} redis-chart/stable/redis
+# helm upgrade --install --wait \
+#   --namespace ${NAMESPACE} \
+#   -f <($SCRIPT_DIR/../values/gen-redis.sh) \
+#   redis-${DEPLOY_ENV} redis-chart/stable/redis
 
 # Wait for redis to be ready
-kubectl rollout status --namespace=${NAMESPACE} \
-  --timeout=2m \
-  --watch statefulset/redis-${DEPLOY_ENV}-master
+# kubectl rollout status --namespace=${NAMESPACE} \
+#   --timeout=2m \
+#   --watch statefulset/redis-${DEPLOY_ENV}-master
 
-kubectl rollout status --namespace=${NAMESPACE} \
-  --timeout=2m \
-  --watch deployment/redis-${DEPLOY_ENV}-slave
+# kubectl rollout status --namespace=${NAMESPACE} \
+#   --timeout=2m \
+#   --watch deployment/redis-${DEPLOY_ENV}-slave
 
 # Add prometheus rule for monitoring redis
-kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  labels:
-    app: prometheus-operator
-    release: prometheus-operator
-  name: redis-${DEPLOY_ENV}-rules
-  namespace: ${NAMESPACE}
-spec:
-  groups:
-  - name: redis-exporter
-    rules:
-    - alert: RedisExporterLastScrapeError
-      annotations:
-        summary: Redis exporter scrape error
-        message: The last redis exporter scrape showed an error
-      expr: redis_exporter_last_scrape_error > 0
-      labels:
-        severity: error
-EOF
-)
+# kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+# apiVersion: monitoring.coreos.com/v1
+# kind: PrometheusRule
+# metadata:
+#   labels:
+#     app: prometheus-operator
+#     release: prometheus-operator
+#   name: redis-${DEPLOY_ENV}-rules
+#   namespace: ${NAMESPACE}
+# spec:
+#   groups:
+#   - name: redis-exporter
+#     rules:
+#     - alert: RedisExporterLastScrapeError
+#       annotations:
+#         summary: Redis exporter scrape error
+#         message: The last redis exporter scrape showed an error
+#       expr: redis_exporter_last_scrape_error > 0
+#       labels:
+#         severity: error
+# EOF
+# )
 
 helm dependency update sentry-chart/stable/sentry/
 
@@ -116,19 +141,19 @@ for DEPLOYMENT in $DEPLOYMENTS; do
 done
 
 # Add prometheus servicemonitor for monitoring sentry
-kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: "sentry"
-  labels:
-    release: prometheus-operator
-spec:
-  selector:
-    matchLabels:
-      monitor: me
-  endpoints:
-  - port: metrics
-    path: /metrics
-EOF
-)
+# kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: "sentry"
+#   labels:
+#     release: prometheus-operator
+# spec:
+#   selector:
+#     matchLabels:
+#       monitor: me
+#   endpoints:
+#   - port: metrics
+#     path: /metrics
+# EOF
+# )
