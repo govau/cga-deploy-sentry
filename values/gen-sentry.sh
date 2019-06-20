@@ -16,6 +16,11 @@ set -o pipefail
 : "${OIDC_CLIENT_SECRET:?Need to set OIDC_CLIENT_SECRET}"
 : "${OIDC_DOMAIN:?Need to set OIDC_DOMAIN}"
 : "${OIDC_SCOPE:?Need to set OIDC_SCOPE}"
+: "${POSTGRES_DB_NAME:?Need to set POSTGRES_DB_NAME}"
+: "${POSTGRES_ENDPOINT_ADDRESS:?Need to set POSTGRES_ENDPOINT_ADDRESS}"
+: "${POSTGRES_MASTER_PASSWORD:?Need to set POSTGRES_MASTER_PASSWORD}"
+: "${POSTGRES_MASTER_USERNAME:?Need to set POSTGRES_MASTER_USERNAME}"
+: "${POSTGRES_PORT:?Need to set POSTGRES_PORT}"
 : "${GITHUB_APP_ID:?Need to set GITHUB_APP_ID}"
 : "${GITHUB_API_SECRET:?Need to set GITHUB_API_SECRET}"
 
@@ -39,12 +44,6 @@ esac
 export NAMESPACE="sentry-${DEPLOY_ENV}"
 
 TLS_SECRET_NAME="${HOSTNAME//./-}-tls"
-
-POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
-POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
-POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
-POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
-POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
 
 cat <<EOF
 cron:

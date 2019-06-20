@@ -123,7 +123,6 @@ jobs:
       file: deploy-src/ci/deploy.yml
       params:
         ADMIN_EMAIL: ((ADMIN_EMAIL))
-        DB_PLAN: production
         DEPLOY_ENV: prod
         EMAIL_FROM_ADDRESS: ((email_from_address))
         EMAIL_HOST: ((email_host))
@@ -138,6 +137,11 @@ jobs:
         OIDC_CLIENT_SECRET: ((oidc_client_secret_prod))
         OIDC_DOMAIN: ((oidc_domain))
         OIDC_SCOPE: ((oidc_scope))
+        POSTGRES_DB_NAME: ((POSTGRES_DB_NAME_PROD))
+        POSTGRES_ENDPOINT_ADDRESS: ((POSTGRES_ENDPOINT_ADDRESS_PROD))
+        POSTGRES_MASTER_PASSWORD: ((POSTGRES_MASTER_PASSWORD_PROD))
+        POSTGRES_MASTER_USERNAME: ((POSTGRES_MASTER_USERNAME_PROD))
+        POSTGRES_PORT: ((POSTGRES_PORT_PROD))
         KUBECONFIG: ((kubeconfig))
     - task: smoke-test
       file: deploy-src/ci/smoke-test.yml

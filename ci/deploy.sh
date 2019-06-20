@@ -3,7 +3,6 @@
 set -eu
 set -o pipefail
 
-: "${DB_PLAN:?Need to set DB_PLAN}"
 : "${DEPLOY_ENV:?Need to set DEPLOY_ENV}"
 : "${KUBECONFIG:?Need to set KUBECONFIG}"
 : "${TILLER_NAMESPACE:?Need to set TILLER_NAMESPACE}"
@@ -13,15 +12,15 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 echo $KUBECONFIG > k
 export KUBECONFIG=k
 
-set -x
-
 export NAMESPACE="sentry-${DEPLOY_ENV}"
 
 kubectl -n ${NAMESPACE} get po # just a test
 
-# Create a db for sentry if one doesnt already exist
-if ! kubectl -n ${NAMESPACE} get serviceinstance sentry-db > /dev/null 2>&1 ; then
-  kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+# The pipeline supports either using an existing postgres db, or creating one with the aws servicebroker.
+if [[ ${POSTGRES_DB_NAME} == "" ]]; then
+  # Env var not specified, so create a db for sentry using the servicebroker
+  if ! kubectl -n ${NAMESPACE} get serviceinstance sentry-db > /dev/null 2>&1 ; then
+    kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceInstance
 metadata:
@@ -30,13 +29,13 @@ spec:
   clusterServiceClassExternalName: rdspostgresql
   clusterServicePlanExternalName: ${DB_PLAN}
 EOF
-)
-fi
+  )
+  fi
 
-echo "Wait for ${NAMESPACE} sentry-db to be ready"
-kubectl -n "${NAMESPACE}" wait --for=condition=Ready --timeout=30m "ServiceInstance/sentry-db"
+  echo "Wait for ${NAMESPACE} sentry-db to be ready"
+  kubectl -n "${NAMESPACE}" wait --for=condition=Ready --timeout=30m "ServiceInstance/sentry-db"
 
-kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
+  kubectl apply -n "${NAMESPACE}" -f <(cat <<EOF
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceBinding
 metadata:
@@ -45,7 +44,22 @@ spec:
   instanceRef:
     name: "sentry-db"
 EOF
-)
+  )
+
+  # extract db env vars from the k8s secret created by the above binding
+  POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
+  POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
+  POSTGRES_MASTER_PASSWORD="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_PASSWORD' | base64 -d)"
+  POSTGRES_MASTER_USERNAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.MASTER_USERNAME' | base64 -d)"
+  POSTGRES_PORT="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.PORT' | base64 -d)"
+fi
+
+# export the db env vars so they can be used in gen-sentry.sh
+export POSTGRES_DB_NAME
+export POSTGRES_ENDPOINT_ADDRESS
+export POSTGRES_MASTER_PASSWORD
+export POSTGRES_MASTER_USERNAME
+export POSTGRES_PORT
 
 # Create a new random password for redis if one doesnt already exist
 if ! kubectl -n ${NAMESPACE} get secret redis > /dev/null 2>&1 ; then

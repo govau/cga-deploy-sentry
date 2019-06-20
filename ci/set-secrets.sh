@@ -92,7 +92,7 @@ fi
 
 # secrets for https://github.com/siemens/sentry-auth-oidc
 echo "Ensuring oidc auth secrets are set if they are in our env"
-if [ -n "$OIDC_CLIENT_ID_CI" ]; then
+if [[ -v OIDC_CLIENT_ID_CI ]]; then
   set_credhub_value oidc_client_id_ci "${OIDC_CLIENT_ID_CI}"
   set_credhub_value oidc_client_secret_ci "${OIDC_CLIENT_SECRET_CI}"
   set_credhub_value oidc_client_id_prod "${OIDC_CLIENT_ID_PROD}"
@@ -107,7 +107,7 @@ else
 fi
 
 echo "Ensuring github auth secrets are set if they are in our env"
-if [ -n "$GITHUB_APP_ID" ]; then
+if [[ -v GITHUB_APP_ID ]]; then
   set_credhub_value github_app_id "${GITHUB_APP_ID}"
   set_credhub_value github_api_secret "${GITHUB_API_SECRET}"
 else
@@ -118,7 +118,7 @@ else
 fi
 
 echo "Ensuring email secrets are set if they are in our env"
-if [ -n "$EMAIL_FROM_ADDRESS" ]; then
+if [[ -v EMAIL_FROM_ADDRESS ]]; then
   set_credhub_value email_from_address "${EMAIL_FROM_ADDRESS}"
   set_credhub_value email_host "${EMAIL_HOST}"
   set_credhub_value email_port "${EMAIL_PORT}"
@@ -131,13 +131,13 @@ else
   fi
 fi
 
-if [ -n "${ADMIN_EMAIL}" ]; then
+if [[ -v ADMIN_EMAIL ]]; then
   set_credhub_value ADMIN_EMAIL "${ADMIN_EMAIL}"
 else
   assert_credhub_value ADMIN_EMAIL
 fi
 
-if [ -n "${BOOTSTRAP_USER_EMAIL}" ]; then
+if [[ -v BOOTSTRAP_USER_EMAIL ]]; then
   set_credhub_value BOOTSTRAP_USER_EMAIL "${BOOTSTRAP_USER_EMAIL}"
   set_credhub_value BOOTSTRAP_USER_PASSWORD "${BOOTSTRAP_USER_PASSWORD}"
 else
@@ -145,3 +145,13 @@ else
   assert_credhub_value BOOTSTRAP_USER_PASSWORD
 fi
 
+# The CI environment uses the aws servicebroker to create a db, which can then
+# be destroyed at the end of the day, but in prod we use a db managed in
+# terraform. Specify the details for the prod db here.
+if [[ -v POSTGRES_DB_NAME_PROD ]]; then
+  set_credhub_value POSTGRES_DB_NAME_PROD "${POSTGRES_DB_NAME_PROD}"
+  set_credhub_value POSTGRES_ENDPOINT_ADDRESS_PROD "${POSTGRES_ENDPOINT_ADDRESS_PROD}"
+  set_credhub_value POSTGRES_MASTER_PASSWORD_PROD "${POSTGRES_MASTER_PASSWORD_PROD}"
+  set_credhub_value POSTGRES_MASTER_USERNAME_PROD "${POSTGRES_MASTER_USERNAME_PROD}"
+  set_credhub_value POSTGRES_PORT_PROD "${POSTGRES_PORT_PROD}"
+fi
