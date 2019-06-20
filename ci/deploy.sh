@@ -46,6 +46,9 @@ spec:
 EOF
   )
 
+  echo "Wait for ${NAMESPACE} sentry-db-binding to be ready"
+  kubectl -n "${NAMESPACE}" wait --for=condition=Ready --timeout=1m "ServiceBinding/sentry-db-binding"
+
   # extract db env vars from the k8s secret created by the above binding
   POSTGRES_DB_NAME="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.DB_NAME' | base64 -d)"
   POSTGRES_ENDPOINT_ADDRESS="$(kubectl -n ${NAMESPACE} get secret sentry-db-binding -o json | jq -r '.data.ENDPOINT_ADDRESS' | base64 -d)"
