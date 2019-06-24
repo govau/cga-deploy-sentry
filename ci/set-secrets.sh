@@ -66,12 +66,15 @@ fi
 # secrets for https://github.com/siemens/sentry-auth-oidc
 echo "Ensuring oidc auth secrets are set if they are in our env"
 if [[ -v OIDC_CLIENT_ID_CI ]]; then
+  set_credhub_value oidc_authorization_endpoint "${OIDC_AUTHORIZATION_ENDPOINT}"
   set_credhub_value oidc_client_id_ci "${OIDC_CLIENT_ID_CI}"
   set_credhub_value oidc_client_secret_ci "${OIDC_CLIENT_SECRET_CI}"
   set_credhub_value oidc_client_id_prod "${OIDC_CLIENT_ID_PROD}"
   set_credhub_value oidc_client_secret_prod "${OIDC_CLIENT_SECRET_PROD}"
-  set_credhub_value oidc_domain "${OIDC_DOMAIN}"
+  set_credhub_value oidc_issuer "${OIDC_ISSUER}"
   set_credhub_value oidc_scope "${OIDC_SCOPE}"
+  set_credhub_value oidc_token_endpoint "${OIDC_TOKEN_ENDPOINT}"
+  set_credhub_value oidc_userinfo_endpoint "${OIDC_USERINFO_ENDPOINT}"
 else
   if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/oidc_client_id_ci" > /dev/null 2>&1 ; then
     echo "OIDC auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
