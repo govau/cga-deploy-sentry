@@ -10,8 +10,6 @@ set -o pipefail
 : "${EMAIL_PORT:?Need to set EMAIL_PORT}"
 : "${EMAIL_USER:?Need to set EMAIL_USER}"
 : "${EMAIL_PASSWORD:?Need to set EMAIL_PASSWORD}"
-: "${GOOGLE_CLIENT_ID:?Need to set GOOGLE_CLIENT_ID}"
-: "${GOOGLE_CLIENT_SECRET:?Need to set GOOGLE_CLIENT_SECRET}"
 : "${OIDC_AUTHORIZATION_ENDPOINT:?Need to set OIDC_AUTHORIZATION_ENDPOINT}"
 : "${OIDC_CLIENT_ID:?Need to set OIDC_CLIENT_ID}"
 : "${OIDC_CLIENT_SECRET:?Need to set OIDC_CLIENT_SECRET}"
@@ -61,10 +59,6 @@ web:
       value: "${GITHUB_APP_ID}"
     - name: GITHUB_API_SECRET
       value: "${GITHUB_API_SECRET}"
-    - name: GOOGLE_CLIENT_ID
-      value: "${GOOGLE_CLIENT_ID}"
-    - name: GOOGLE_CLIENT_SECRET
-      value: "${GOOGLE_CLIENT_SECRET}"
     - name: OIDC_AUTHORIZATION_ENDPOINT
       value: "${OIDC_AUTHORIZATION_ENDPOINT}"
     - name: OIDC_CLIENT_ID
@@ -128,10 +122,6 @@ config:
   sentryConfPy: |
     if 'GITHUB_APP_ID' in os.environ:
         GITHUB_REQUIRE_VERIFIED_EMAIL = True
-
-    if 'GOOGLE_CLIENT_ID' in os.environ:
-        GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
-        GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 
     if 'OIDC_CLIENT_ID' in os.environ:
         OIDC_AUTHORIZATION_ENDPOINT = env('OIDC_AUTHORIZATION_ENDPOINT')

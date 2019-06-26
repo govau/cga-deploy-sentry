@@ -30,39 +30,6 @@ if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
   https_proxy=socks5://localhost:8112 credhub login --sso
 fi
 
-echo "Ensuring google auth secrets are set"
-GOOGLE_CREDS_FILE="$SCRIPT_DIR/../google_client_secret.json"
-if [ ! -e $GOOGLE_CREDS_FILE ]; then
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/google_client_id" > /dev/null 2>&1 ; then
-    echo $GOOGLE_CREDS_FILE not found
-
-    cat <<EOF
-    You must manually create a Google Client ID for sentry sso.
-
-    Go to the DTA SSO project: <https://console.developers.google.com/apis/credentials?project=dta-single-sign-on&organizationId=110492363159>"
-
-    Create an OAuth Client ID credential:
-    - Type: Web application
-    - Name: Sentry ENV_NAME-cld (not important)
-    - Redirect URIs:
-        - https://sentry.cloud.gov.au/auth/sso/
-
-    Click the Download JSON link.
-
-    Move the json file to $GOOGLE_CREDS_FILE
-
-    mv ~/Downloads/client_secret_xxxx.json $GOOGLE_CREDS_FILE
-EOF
-    exit 1
-  fi
-else
-  GOOGLE_CLIENT_ID="$(yq -r .web.client_id ${GOOGLE_CREDS_FILE})"
-  GOOGLE_CLIENT_SECRET="$(yq -r .web.client_secret ${GOOGLE_CREDS_FILE})"
-
-  set_credhub_value google_client_id "${GOOGLE_CLIENT_ID}"
-  set_credhub_value google_client_secret "${GOOGLE_CLIENT_SECRET}"
-fi
-
 # secrets for https://github.com/siemens/sentry-auth-oidc
 echo "Ensuring oidc auth secrets are set if they are in our env"
 if [[ -v OIDC_CLIENT_ID_CI ]]; then
