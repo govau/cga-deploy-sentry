@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Sets the secrets needed by this pipeline.
-# Where possible, credentials are rotated each time this script is run.
 
 PIPELINE=sentry
 

@@ -34,4 +34,6 @@ POSTGRES_PORT_PROD:
 
 # First user
 
-The first time Sentry is installed, you must login to the web pod and create a root user using `sentry createuser`.
+The first time Sentry is installed, you must login to the web pod and create a root user using `sentry createuser`. 
+
+The helm chart can also create the first user when the chart is first installed, which is used in the CI environment. To set the email and password, set `BOOTSTRAP_USER_EMAIL` and `BOOTSTRAP_USER_PASSWORD` and run [set-secrets.sh](ci/set-secrets.sh).
