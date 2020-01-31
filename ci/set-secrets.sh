@@ -12,12 +12,12 @@ set_credhub_value() {
   KEY="$1"
   VALUE="$2"
   https_proxy=socks5://localhost:8112 \
-  credhub set -n "/concourse/apps/$PIPELINE/$KEY" -t value -v "${VALUE}"
+  credhub set -n "/concourse/main/$PIPELINE/$KEY" -t value -v "${VALUE}"
 }
 
 assert_credhub_value() {
   KEY="$1"
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/${KEY}" > /dev/null 2>&1 ; then
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/main/${PIPELINE}/${KEY}" > /dev/null 2>&1 ; then
     echo "${KEY} not set in credhub. Add it to your environment (e.g. use .envrc) and re-run this script"
     exit 1
   fi
@@ -31,7 +31,7 @@ fi
 
 # secrets for https://github.com/siemens/sentry-auth-oidc
 echo "Ensuring oidc auth secrets are set if they are in our env"
-if [[ -v OIDC_CLIENT_ID_CI ]]; then
+if [[ -n ${OIDC_CLIENT_ID_CI} ]]; then
   set_credhub_value oidc_authorization_endpoint "${OIDC_AUTHORIZATION_ENDPOINT}"
   set_credhub_value oidc_client_id_ci "${OIDC_CLIENT_ID_CI}"
   set_credhub_value oidc_client_secret_ci "${OIDC_CLIENT_SECRET_CI}"
@@ -42,44 +42,44 @@ if [[ -v OIDC_CLIENT_ID_CI ]]; then
   set_credhub_value oidc_token_endpoint "${OIDC_TOKEN_ENDPOINT}"
   set_credhub_value oidc_userinfo_endpoint "${OIDC_USERINFO_ENDPOINT}"
 else
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/oidc_client_id_ci" > /dev/null 2>&1 ; then
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/main/${PIPELINE}/oidc_client_id_ci" > /dev/null 2>&1 ; then
     echo "OIDC auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
     exit 1
   fi
 fi
 
 echo "Ensuring github auth secrets are set if they are in our env"
-if [[ -v GITHUB_APP_ID ]]; then
+if [[ -n ${GITHUB_APP_ID} ]]; then
   set_credhub_value github_app_id "${GITHUB_APP_ID}"
   set_credhub_value github_api_secret "${GITHUB_API_SECRET}"
 else
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/github_app_id" > /dev/null 2>&1 ; then
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/main/${PIPELINE}/github_app_id" > /dev/null 2>&1 ; then
     echo "Github auth secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
     exit 1
   fi
 fi
 
 echo "Ensuring email secrets are set if they are in our env"
-if [[ -v EMAIL_FROM_ADDRESS ]]; then
+if [[ -n ${EMAIL_FROM_ADDRESS} ]]; then
   set_credhub_value email_from_address "${EMAIL_FROM_ADDRESS}"
   set_credhub_value email_host "${EMAIL_HOST}"
   set_credhub_value email_port "${EMAIL_PORT}"
   set_credhub_value email_user "${EMAIL_USER}"
   set_credhub_value email_password "${EMAIL_PASSWORD}"
 else
-  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/apps/${PIPELINE}/email_from_address" > /dev/null 2>&1 ; then
+  if ! https_proxy=socks5://localhost:8112 credhub get -n "/concourse/main/${PIPELINE}/email_from_address" > /dev/null 2>&1 ; then
     echo "Email secrets are not set. Add them to your environment (e.g. use .envrc) and re-run this script"
     exit 1
   fi
 fi
 
-if [[ -v ADMIN_EMAIL ]]; then
+if [[ -n ${ADMIN_EMAIL} ]]; then
   set_credhub_value ADMIN_EMAIL "${ADMIN_EMAIL}"
 else
   assert_credhub_value ADMIN_EMAIL
 fi
 
-if [[ -v BOOTSTRAP_USER_EMAIL ]]; then
+if [[ -n ${BOOTSTRAP_USER_EMAIL} ]]; then
   set_credhub_value BOOTSTRAP_USER_EMAIL "${BOOTSTRAP_USER_EMAIL}"
   set_credhub_value BOOTSTRAP_USER_PASSWORD "${BOOTSTRAP_USER_PASSWORD}"
 else
@@ -90,7 +90,7 @@ fi
 # The CI environment uses the aws servicebroker to create a db, which can then
 # be destroyed at the end of the day, but in prod we use a db managed in
 # terraform. Specify the details for the prod db here.
-if [[ -v POSTGRES_DB_NAME_PROD ]]; then
+if [[ -n ${POSTGRES_DB_NAME_PROD} ]]; then
   set_credhub_value POSTGRES_DB_NAME_PROD "${POSTGRES_DB_NAME_PROD}"
   set_credhub_value POSTGRES_ENDPOINT_ADDRESS_PROD "${POSTGRES_ENDPOINT_ADDRESS_PROD}"
   set_credhub_value POSTGRES_MASTER_PASSWORD_PROD "${POSTGRES_MASTER_PASSWORD_PROD}"

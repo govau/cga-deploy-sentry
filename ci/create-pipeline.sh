@@ -20,6 +20,11 @@ fly -t ${TARGET} check-resource \
   --resource "${PIPELINE}/redis-chart" \
   --from  "ref:a83f5be3b228389177271ffb6c74c4308f8d678c"
 
+# Sentry pinned to 9.1.1
+fly -t ${TARGET} check-resource \
+  --resource "${PIPELINE}/sentry-chart" \
+  --from  "ref:a83f5be3b228389177271ffb6c74c4308f8d678c"
+
 # Check all other resources for errors
 RESOURCES="$(fly -t "${TARGET}" get-pipeline -p "${PIPELINE}" | yq -r '.resources[].name')"
 for RESOURCE in $RESOURCES; do

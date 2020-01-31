@@ -207,7 +207,7 @@ if ! https_proxy=socks5://localhost:8112 credhub find > /dev/null; then
 fi
 
 https_proxy=socks5://localhost:8112 \
-credhub set -n "/concourse/apps/sentry/kubeconfig" -t value -v "${kubeconfig}"
+  credhub set -n "/concourse/main/sentry/kubeconfig" -t value -v "${kubeconfig}"
 
 echo "Use in concourse:"
 echo "echo \$KUBECONFIG > k"
