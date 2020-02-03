@@ -39,11 +39,15 @@ jobs:
   plan:
   - do:
     - get: redis-chart
-      version:
-        # We dont want to keep redis up to date until we are
-        # really sure we wont lose data, so it is pinned
-        ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
+      # version:
+      #   # We dont want to keep redis up to date until we are
+      #   # really sure we wont lose data, so it is pinned
+      #   # This keeps redis at 4.0.14
+      #   ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
     - get: sentry-chart
+      version:
+        # This keeps sentry at 9.1.1
+        ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
     - get: deploy-src
       trigger: true
     - task: deploy
