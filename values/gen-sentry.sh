@@ -134,6 +134,7 @@ config:
         OIDC_USERINFO_ENDPOINT = env('OIDC_USERINFO_ENDPOINT')
 
     SENTRY_FEATURES['auth:register'] = False
+    SENTRY_FEATURES['projects:custom-inbound-filters'] = True
     SENTRY_BEACON = True
 
 metrics:
