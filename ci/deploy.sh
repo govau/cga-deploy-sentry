@@ -74,7 +74,7 @@ fi
 # Starting tiller in the background"
 export HELM_HOST=:44134
 tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
-helm init --client-only --service-account "ci-user" --wait
+helm init --stable-repo-url https://charts.helm.sh/stable --client-only --service-account "ci-user" --wait
 
 # The redis included with sentry is a bit old, so we install our own
 helm upgrade --install --wait \
