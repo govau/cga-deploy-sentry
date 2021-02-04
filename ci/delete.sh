@@ -20,7 +20,7 @@ echo "Starting tiller in the background"
 export HELM_HOST=:44134
 tiller --storage=secret --listen "$HELM_HOST" >/dev/null 2>&1 &
 
-helm init --client-only --service-account "${ci_user}" --wait
+helm init --stable-repo-url https://charts.helm.sh/stable --client-only --service-account "${ci_user}" --wait
 
 kubectl -n ${NAMESPACE} delete PrometheusRule/redis-${DEPLOY_ENV}-rules || true
 
