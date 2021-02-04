@@ -25,7 +25,7 @@ helm init --stable-repo-url https://charts.helm.sh/stable --client-only --servic
 kubectl -n ${NAMESPACE} delete PrometheusRule/redis-${DEPLOY_ENV}-rules || true
 
 # https://github.com/helm/charts/tree/master/stable/sentry#uninstalling-the-chart
-helm delete "sentry-${DEPLOY_ENV}" --purge || true
+helm --stable-repo-url https://charts.helm.sh/stable delete "sentry-${DEPLOY_ENV}" --purge || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-user-create || true
 
