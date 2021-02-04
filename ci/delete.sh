@@ -29,7 +29,7 @@ helm delete "sentry-${DEPLOY_ENV}" --purge || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-db-init || true
 kubectl -n ${NAMESPACE} delete job/${NAMESPACE}-user-create || true
 
-helm delete "redis-${DEPLOY_ENV}" --purge || true
+helm --stable-repo-url https://charts.helm.sh/stable delete "redis-${DEPLOY_ENV}" --purge || true
 
 kubectl -n ${NAMESPACE} delete pvc redis-data-redis-${DEPLOY_ENV}-master-0 || true
 kubectl -n ${NAMESPACE} delete pvc redis-data-sentry-${DEPLOY_ENV}-redis-master-0 || true
