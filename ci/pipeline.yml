@@ -47,7 +47,8 @@ jobs:
     - get: sentry-chart
       version:
         # This keeps sentry at 9.1.1
-        ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
+        # ref: "a83f5be3b228389177271ffb6c74c4308f8d678c"
+        ref: 9b2f84cdab6d8c9436aa82240105e9d7efa32325   # updates repository in requirements to be https://charts.helm.sh/stable
     - get: deploy-src
       trigger: true
     - task: deploy
