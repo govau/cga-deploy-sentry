@@ -115,6 +115,12 @@ spec:
 EOF
 )
 
+# hack to set correct repo for helm charts
+pushd sentry-chart/stable/sentry
+  sed -e 's|https://kubernetes-charts.storage.googleapis.com/|https://charts.helm.sh/stable|' requirements.yaml > requirements-new.yaml
+  mv requirements-new.yaml requirements.yaml
+popd
+
 helm dependency update sentry-chart/stable/sentry/
 
 SENTRY_VALUES_FILE="$(mktemp)"
